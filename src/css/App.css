@@ -1,0 +1,285 @@
+/* กัน scrollbar ทำให้ layout shift */
+html {
+  overflow-y: scroll;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1b252f;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.logo__ {
+  background-image: url("https://th.portal-pokemon.com/public_assets/images/logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 120px;
+  height: 48px;
+}
+
+/* Search */
+.pokemon-list__search {
+  padding: 25px;
+}
+
+.pokemon-search_from__text {
+  font-size: 20px;
+  padding: 0 0 12px 4px;
+  color: #b3eafe;
+  filter: drop-shadow(0px 0px 5px #fdfdfd);
+}
+
+.pokemon-search_from__input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.pokemon-search_from__text__input {
+  width: 50%;
+  padding: 2px 0 2px 25px;
+  font-size: 20px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+}
+
+.pokemon-search_from__text__input::selection {
+  background-color: #c9bb63;
+}
+
+/* Pokemon List */
+.search-container {
+  max-width: 1400px;
+  width: 100%;
+  background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/main_sp_bg.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.pokemon-list {
+  display: grid;
+  font-family: "Noto Sans", Arial, sans-serif;
+  gap: 25px 2px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.pokemon-list--box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/list_pokemon_bg.png");
+  background-size: 100% auto;
+  cursor: pointer;
+  aspect-ratio: 2 / 3;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.pokemon-list--box img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  padding: 10px;
+  box-sizing: border-box;
+  filter: drop-shadow(0px 0px 2px #fdfdfd);
+}
+
+.pokemon-list--box__no {
+  color: #b3eafe;
+  font-size: 16px;
+  padding: 8px 16px 0;
+  width: 90%;
+  text-align: left;
+  margin-top: 16px;
+}
+
+.pokemon-list--box__name {
+  font-weight: 700;
+  font-size: 22px;
+  color: #fdfdfd;
+  padding: 5px 16px 16px;
+  width: 90%;
+  text-align: left;
+}
+
+.pokemon-list--box__types {
+  display: flex;
+  padding: 20px 0px 0px 0px;
+  gap: 15px;
+}
+
+.type {
+  padding: 5px 25px;
+  border-radius: 15px;
+  color: white;
+}
+
+.type--normal { background-color: #a0a0a0; }
+.type--fighting { background-color: #c85500; }
+.type--flying { background-color: #79bcd7; }
+.type--poison { background-color: #be78be; }
+.type--ground { background-color: #92bf19; }
+.type--rock { background-color: #a07850; }
+.type--bug { background-color: #32b432; }
+.type--ghost { background-color: #8c78f0; }
+.type--steel { background-color: #96b4dc; }
+.type--fire { background-color: #c85500; }
+.type--water { background-color: #0094e5; }
+.type--grass { background-color: #92bf19; }
+.type--electric { background-color: #e4b700; }
+.type--psychic { background-color: #dc78c8; }
+.type--ice { background-color: #00b7ee; }
+.type--dragon { background-color: #3c64c8; }
+.type--dark { background-color: #646464; }
+.type--fairy { background-color: #ff7eb8; }
+
+/* Load More */
+.pokemon-list-load-more__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 600px;
+  height: 80px;
+  margin: 20px auto;
+}
+
+.pokemon-list-load-more__button .load-more {
+  background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/morebtn_bg_sp.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 600px;
+  height: 80px;
+  color: #b3eafe;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  text-shadow: 0 0 5px #b3eafe;
+}
+
+.pokemon-list-load-more__button .load-more:hover {
+  background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/morebtn_bg_on.png");
+  color: #000000;
+}
+
+/* Loading */
+.loading {
+  width: 64px;
+  height: 64px;
+  background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/ajax-loader.gif");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 20px auto;
+}
+
+/* Not Found */
+.notfound-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  position: relative;
+  overflow: hidden;
+}
+
+.notfound-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2px);
+  background-size: 36px 36px;
+}
+
+.notfound-card {
+  position: relative;
+  z-index: 1;
+  background-color: #ffffff;
+  border: 4px solid #171717;
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
+  max-width: 24rem;
+  width: 100%;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.15);
+}
+
+.notfound-title {
+  font-size: 6rem;
+  color: #000000;
+  text-align: center;
+  margin: 0 0 1rem;
+}
+
+.notfound-note-text {
+  font-size: 1rem;
+  color: #262626;
+  margin: 0 0 2rem;
+  line-height: 1.625;
+}
+
+.pokeball-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 auto;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pokeball-button__ball {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  border: 4px solid #171717;
+  transition: transform 0.5s ease;
+  background: linear-gradient(to bottom,
+    #ee1c25 0%, #ee1c25 48%,
+    #1a1a1a 48%, #1a1a1a 52%,
+    #ffffff 52%, #ffffff 100%);
+}
+
+.pokeball-button:hover .pokeball-button__ball {
+  transform: rotate(180deg);
+}
+
+.pokeball-button__center {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 4px solid #171717;
+  transition: transform 0.5s ease;
+}
+
+.pokeball-button:hover .pokeball-button__center {
+  transform: rotate(-180deg);
+}
+
+.pokeball-button__label {
+  font-weight: 800;
+  color: #171717;
+  font-size: 1rem;
+}
