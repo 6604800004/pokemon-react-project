@@ -1,6 +1,5 @@
 @tailwind base;
 @tailwind components;
-<<<<<<< HEAD
 @tailwind utilities;
 
 html {
@@ -114,6 +113,3 @@ html {
 .type--dragon   { background-color: #3c64c8; filter: drop-shadow(0 0 3px #5078dc); }
 .type--dark     { background-color: #646464; filter: drop-shadow(0 0 3px #787878); }
 .type--fairy    { background-color: #ff7eb8; filter: drop-shadow(0 0 3px #ffafdc); }
-=======
-@tailwind utilities;
->>>>>>> 249c5404214499b0073e0952a44f2d14a6185aca

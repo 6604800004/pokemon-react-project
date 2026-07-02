@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
 // ---------- ส่วนสุ่ม Pokemon รอบๆ ช่องค้นหา ----------
 
 // รายชื่อ Pokemon ที่ fix ไว้ใช้สุ่มแสดง (แก้ id เพิ่ม/ลดได้ตามต้องการ)
-const pokemon_id = [
+const RANDOM_POKEMON_IDS = [
   1, 4, 7, 25, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 172, 175, 196,
-  200, 205, 212, 214, 218, 222, 231, 246, 252, 258, 263, 270, 274, 278, 283, 290
 ];
 
 // ดีเลย์ระหว่างการสุ่มแต่ละรอบ (ms) — ปรับตัวเลขนี้เพื่อเปลี่ยนความถี่การสุ่ม
-const random_delay = 10000;
+const RANDOM_DELAY_MS = 60000;
 
 // จำนวนวงกลมทั้งหมดรอบช่องค้นหา (1 วงใหญ่ตรงกลาง + 12 วงเล็กซ้าย-ขวา)
-const random_center_bg = 13;
+const RANDOM_BALL_COUNT = 13;
 
-const random_center_bg_img =
+const BG_IMG_URL =
   "https://th.portal-pokemon.com/play/resources/pokedex/img/random_center_bg.png";
 
 const pokemonSpriteUrl = (id: number) =>
@@ -29,7 +29,7 @@ type BallPosition = {
   z: number;
 };
 
-const pokemon_position: BallPosition[] = [
+const BALL_POSITIONS: BallPosition[] = [
   { left: 550, bgWidth: 300, height: 550, spriteWidth: 260, z: 40 },
   { left: 340, bgWidth: 130, height: 400, spriteWidth: 110, z: 10 },
   { left: 340, bgWidth: 130, height: 700, spriteWidth: 110, z: 10 },
@@ -58,33 +58,50 @@ const shuffle = <T,>(arr: T[]) => {
 // สุ่ม Pokemon ให้ครบทุกวงในครั้งเดียว โดย "ไม่ให้ซ้ำกันเองระหว่างวง"
 // (เดิมสุ่มอิสระทีละวง ทำให้มีโอกาสได้ id ซ้ำกันสูง เพราะ pool มีจำกัดเทียบกับจำนวนวง)
 const pickUniqueBallIds = () => {
-  if (pokemon_id.length >= random_center_bg) {
-    return shuffle(pokemon_id).slice(0, random_center_bg);
+  if (RANDOM_POKEMON_IDS.length >= RANDOM_BALL_COUNT) {
+    return shuffle(RANDOM_POKEMON_IDS).slice(0, RANDOM_BALL_COUNT);
   }
   // เผื่อกรณี pool มีน้อยกว่าจำนวนวง จะยอมให้ซ้ำได้ (ไม่งั้นจะไม่มีอะไรมาแสดงครบ)
   return Array.from(
-    { length: random_center_bg },
-    () => pokemon_id[Math.floor(Math.random() * pokemon_id.length)]
+    { length: RANDOM_BALL_COUNT },
+    () => RANDOM_POKEMON_IDS[Math.floor(Math.random() * RANDOM_POKEMON_IDS.length)]
   );
 };
 
-function RandomPokemon() {
-  const [randomBallId, setrandomBallId] = useState<number[]>(pickUniqueBallIds);
+/**
+ * RandomPokemonBalls
+ * แสดงวงกลม/สไปรท์ Pokemon สุ่ม 13 วงรอบช่องค้นหา
+ * และสุ่มใหม่ทุกๆ RANDOM_DELAY_MS มิลลิวินาที
+ */
+function RandomPokemonBalls() {
+  const nav = useNavigate();
+  const [randomBallIds, setRandomBallIds] = useState<number[]>(pickUniqueBallIds);
 
-  // ตั้งเวลาสุ่มใหม่ทุกๆ random_delay
+  const goToDetail = (id: number) => {
+    nav(`/PokeDex/${String(id).padStart(4, "0")}`);
+  };
+
+  // ตั้งเวลาสุ่มใหม่ทุกๆ RANDOM_DELAY_MS
   useEffect(() => {
     const timer = setInterval(() => {
-      setrandomBallId(pickUniqueBallIds());
-    }, random_delay);
+      setRandomBallIds(pickUniqueBallIds());
+    }, RANDOM_DELAY_MS);
     return () => clearInterval(timer);
   }, []);
 
+  // จำกัดจำนวนวงที่ render ให้ตรงกับ RANDOM_BALL_COUNT จริงๆ
+  // หมายเหตุ: ถ้าตั้ง RANDOM_BALL_COUNT มากกว่าจำนวนตำแหน่งที่มีใน BALL_POSITIONS
+  // ต้องเพิ่ม object ตำแหน่งใหม่ (left/bgWidth/height/spriteWidth/z) เข้าไปใน BALL_POSITIONS ด้วย
+  // เพราะแต่ละวงมีพิกัดเฉพาะที่ออกแบบไว้ ระบบไม่ได้สุ่มตำแหน่งเอง
+  const visiblePositions = BALL_POSITIONS.slice(0, RANDOM_BALL_COUNT);
+
   return (
     <>
-      {pokemon_position.map((pos, i) => (
+      {/* พื้นหลังวงกลม (background rings) */}
+      {visiblePositions.map((pos, i) => (
         <div key={`bg-${i}`}>
           <img
-            src={random_center_bg_img}
+            src={BG_IMG_URL}
             className="absolute bottom-0 -translate-x-1/2 object-contain pointer-events-none select-none"
             style={{ left: pos.left, width: pos.bgWidth, height: pos.height, zIndex: pos.z }}
             aria-hidden="true"
@@ -92,14 +109,15 @@ function RandomPokemon() {
         </div>
       ))}
 
-      {/* สไปรท์ Pokemon ที่สุ่มได้ */}
-      {pokemon_position.map((pos, i) => (
+      {/* สไปรท์ Pokemon ที่สุ่มได้ — คลิกได้ พาไปหน้า detail ของตัวนั้น */}
+      {visiblePositions.map((pos, i) => (
         <div key={`sprite-${i}`}>
           <img
-            src={pokemonSpriteUrl(randomBallId[i])}
-            className="absolute bottom-0 -translate-x-1/2 object-contain pointer-events-none select-none"
+            src={pokemonSpriteUrl(randomBallIds[i])}
+            className="absolute bottom-0 -translate-x-1/2 object-contain select-none cursor-pointer transition-transform"
             style={{ left: pos.left, width: pos.spriteWidth, height: pos.height, zIndex: pos.z }}
-            aria-hidden="true"
+            alt={`pokemon-${randomBallIds[i]}`}
+            onClick={() => goToDetail(randomBallIds[i])}
             onError={(e) => {
               e.currentTarget.style.opacity = "0";
             }}
@@ -110,4 +128,4 @@ function RandomPokemon() {
   );
 }
 
-export default RandomPokemon;
+export default RandomPokemonBalls;
