@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from 'react-router';
+<<<<<<< HEAD
 
 
 function PokemonDetail() {
     const nav = useNavigate();
     const [data, setData] = useState<any>(null);
+=======
+import { type Tdata } from "../data/pokemonData";
+import "../css/App-Detail.css"
+
+function PokemonDetail() {
+    const nav = useNavigate();
+    const [data, setData] = useState<Tdata | null>(null);
+>>>>>>> 249c5404214499b0073e0952a44f2d14a6185aca
     const { id } = useParams();
 
     useEffect(() => {
@@ -16,7 +25,11 @@ function PokemonDetail() {
         const fetchData = async () => {
             try {
                 const numericId = parseInt(id, 10);
+<<<<<<< HEAD
                 const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${numericId}`);
+=======
+                const res = await fetch(`https://pokeapi.co/api/v2/pokemon-form/${numericId}`);
+>>>>>>> 249c5404214499b0073e0952a44f2d14a6185aca
                 if (!res.ok) {
                     if (!cancelled) nav("/404", { replace: true });
                     return;
@@ -31,8 +44,11 @@ function PokemonDetail() {
         return () => { cancelled = true; };
     }, [id, nav]);
 
+<<<<<<< HEAD
     if (!data) return null;
 
+=======
+>>>>>>> 249c5404214499b0073e0952a44f2d14a6185aca
     return (
         <>
             <div className="header">
@@ -45,6 +61,7 @@ function PokemonDetail() {
                         โปเกเด็กซ์
                     </a>
                 </div>
+<<<<<<< HEAD
 
                 <div className="pokemon-detail-box">
                     <img
@@ -60,6 +77,8 @@ function PokemonDetail() {
                         ))}
                     </div>
                 </div>
+=======
+>>>>>>> 249c5404214499b0073e0952a44f2d14a6185aca
             </div>
         </>
     );
