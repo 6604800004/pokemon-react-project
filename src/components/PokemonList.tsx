@@ -178,7 +178,7 @@ function PokemonList() {
               className="absolute inset-0 w-auto h-auto object-cover object-center pointer-events-none select-none z-20"
               aria-hidden="true"
             />
-            
+
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-7">
               <img
                 src="https://th.portal-pokemon.com/play/resources/pokedex/img/pokemon_list_bg.png"
@@ -223,7 +223,7 @@ function PokemonList() {
           </div>
 
         </div>
-        
+
         <div className="list-section-bg max-w-[1400px] w-full mx-auto px-10 pt-5 pb-10 min-h-screen">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 font-[Noto_Sans,Arial,sans-serif]">
             {visibleData.map((pokemon) => (

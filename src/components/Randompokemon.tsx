@@ -1,130 +1,307 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-// ---------- ส่วนสุ่ม Pokemon รอบๆ ช่องค้นหา ----------
 
-// รายชื่อ Pokemon ที่ fix ไว้ใช้สุ่มแสดง (แก้ id เพิ่ม/ลดได้ตามต้องการ)
 const RANDOM_POKEMON_IDS = [
-  1, 4, 7, 25, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 172, 175, 196,
+  1, 4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 
+  172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212, 213, 
+  214, 215, 217, 300, 305, 306, 307
 ];
 
-// ดีเลย์ระหว่างการสุ่มแต่ละรอบ (ms) — ปรับตัวเลขนี้เพื่อเปลี่ยนความถี่การสุ่ม
-const RANDOM_DELAY_MS = 60000;
-
-// จำนวนวงกลมทั้งหมดรอบช่องค้นหา (1 วงใหญ่ตรงกลาง + 12 วงเล็กซ้าย-ขวา)
-const RANDOM_BALL_COUNT = 13;
+// ตั้งเวลาการสุ่ม
+const RANDOM_DELAY_SECONDS = 20;
+const RANDOM_DELAY_MS = RANDOM_DELAY_SECONDS * 1000;
 
 const BG_IMG_URL =
   "https://th.portal-pokemon.com/play/resources/pokedex/img/random_center_bg.png";
 
+const RING_IMG_URL =
+  "https://th.portal-pokemon.com/play/resources/pokedex/img/random_bg.png";
+
 const pokemonSpriteUrl = (id: number) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 
-// ตำแหน่ง/ขนาดของแต่ละวง เรียงตามลำดับเดิม (index 0 = วงกลางใหญ่)
-type BallPosition = {
-  left: number;
-  bgWidth: number;
-  height: number;
-  spriteWidth: number;
-  z: number;
+const pickUniqueIds = (n: number): number[] => {
+  const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
 };
 
-const BALL_POSITIONS: BallPosition[] = [
-  { left: 550, bgWidth: 300, height: 550, spriteWidth: 260, z: 40 },
-  { left: 340, bgWidth: 130, height: 400, spriteWidth: 110, z: 10 },
-  { left: 340, bgWidth: 130, height: 700, spriteWidth: 110, z: 10 },
-  { left: 230, bgWidth: 130, height: 550, spriteWidth: 110, z: 10 },
-  { left: 115, bgWidth: 130, height: 400, spriteWidth: 110, z: 10 },
-  { left: 115, bgWidth: 130, height: 700, spriteWidth: 110, z: 10 },
-  { left: 5, bgWidth: 130, height: 550, spriteWidth: 110, z: 10 },
-  { left: 750, bgWidth: 130, height: 400, spriteWidth: 110, z: 10 },
-  { left: 750, bgWidth: 130, height: 700, spriteWidth: 110, z: 10 },
-  { left: 865, bgWidth: 130, height: 550, spriteWidth: 110, z: 10 },
-  { left: 980, bgWidth: 130, height: 400, spriteWidth: 110, z: 10 },
-  { left: 980, bgWidth: 130, height: 700, spriteWidth: 110, z: 10 },
-  { left: 1100, bgWidth: 130, height: 550, spriteWidth: 110, z: 10 },
-];
-
-// สลับลำดับ array แบบสุ่ม (Fisher–Yates shuffle)
-const shuffle = <T,>(arr: T[]) => {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-};
-
-// สุ่ม Pokemon ให้ครบทุกวงในครั้งเดียว โดย "ไม่ให้ซ้ำกันเองระหว่างวง"
-// (เดิมสุ่มอิสระทีละวง ทำให้มีโอกาสได้ id ซ้ำกันสูง เพราะ pool มีจำกัดเทียบกับจำนวนวง)
-const pickUniqueBallIds = () => {
-  if (RANDOM_POKEMON_IDS.length >= RANDOM_BALL_COUNT) {
-    return shuffle(RANDOM_POKEMON_IDS).slice(0, RANDOM_BALL_COUNT);
-  }
-  // เผื่อกรณี pool มีน้อยกว่าจำนวนวง จะยอมให้ซ้ำได้ (ไม่งั้นจะไม่มีอะไรมาแสดงครบ)
-  return Array.from(
-    { length: RANDOM_BALL_COUNT },
-    () => RANDOM_POKEMON_IDS[Math.floor(Math.random() * RANDOM_POKEMON_IDS.length)]
-  );
-};
-
-/**
- * RandomPokemonBalls
- * แสดงวงกลม/สไปรท์ Pokemon สุ่ม 13 วงรอบช่องค้นหา
- * และสุ่มใหม่ทุกๆ RANDOM_DELAY_MS มิลลิวินาที
- */
 function RandomPokemonBalls() {
   const nav = useNavigate();
-  const [randomBallIds, setRandomBallIds] = useState<number[]>(pickUniqueBallIds);
+  const [ids, setIds] = useState<number[]>(() => pickUniqueIds(13));
+  const centerId = ids[12];
 
   const goToDetail = (id: number) => {
     nav(`/PokeDex/${String(id).padStart(4, "0")}`);
   };
 
-  // ตั้งเวลาสุ่มใหม่ทุกๆ RANDOM_DELAY_MS
   useEffect(() => {
     const timer = setInterval(() => {
-      setRandomBallIds(pickUniqueBallIds());
+      setIds(pickUniqueIds(13));
     }, RANDOM_DELAY_MS);
     return () => clearInterval(timer);
   }, []);
 
-  // จำกัดจำนวนวงที่ render ให้ตรงกับ RANDOM_BALL_COUNT จริงๆ
-  // หมายเหตุ: ถ้าตั้ง RANDOM_BALL_COUNT มากกว่าจำนวนตำแหน่งที่มีใน BALL_POSITIONS
-  // ต้องเพิ่ม object ตำแหน่งใหม่ (left/bgWidth/height/spriteWidth/z) เข้าไปใน BALL_POSITIONS ด้วย
-  // เพราะแต่ละวงมีพิกัดเฉพาะที่ออกแบบไว้ ระบบไม่ได้สุ่มตำแหน่งเอง
-  const visiblePositions = BALL_POSITIONS.slice(0, RANDOM_BALL_COUNT);
-
   return (
-    <>
-      {/* พื้นหลังวงกลม (background rings) */}
-      {visiblePositions.map((pos, i) => (
-        <div key={`bg-${i}`}>
+    <div className="relative pointer-events-none">
+      {/* วงกลาง */}
+      <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-210px] pointer-events-auto">
+        <img
+          src={BG_IMG_URL}
+          className="h-[300px] w-[300px] object-contain select-none pointer-events-none"
+          aria-hidden="true"
+        />
+        <img
+          src={pokemonSpriteUrl(centerId)}
+          className="absolute h-[260px] w-[260px] object-contain select-none cursor-pointer transition-transform"
+          alt={`pokemon-${centerId}`}
+          onClick={() => goToDetail(centerId)}
+          onError={(e) => {
+            e.currentTarget.style.opacity = "0";
+          }}
+        />
+      </div>
+
+      {/* เล็ก-กลางซ้าย*/}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[150px] pointer-events-auto">
           <img
-            src={BG_IMG_URL}
-            className="absolute bottom-0 -translate-x-1/2 object-contain pointer-events-none select-none"
-            style={{ left: pos.left, width: pos.bgWidth, height: pos.height, zIndex: pos.z }}
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
-        </div>
-      ))}
-
-      {/* สไปรท์ Pokemon ที่สุ่มได้ — คลิกได้ พาไปหน้า detail ของตัวนั้น */}
-      {visiblePositions.map((pos, i) => (
-        <div key={`sprite-${i}`}>
           <img
-            src={pokemonSpriteUrl(randomBallIds[i])}
-            className="absolute bottom-0 -translate-x-1/2 object-contain select-none cursor-pointer transition-transform"
-            style={{ left: pos.left, width: pos.spriteWidth, height: pos.height, zIndex: pos.z }}
-            alt={`pokemon-${randomBallIds[i]}`}
-            onClick={() => goToDetail(randomBallIds[i])}
+            src={pokemonSpriteUrl(ids[0])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[0]}`}
+            onClick={() => goToDetail(ids[0])}
             onError={(e) => {
               e.currentTarget.style.opacity = "0";
             }}
           />
         </div>
-      ))}
-    </>
+      </div>
+
+      {/* เล็ก-กลางซ้ายสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[350px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[1])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[1]}`}
+            onClick={() => goToDetail(ids[1])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ซ้ายบนสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[250px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[2])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[2]}`}
+            onClick={() => goToDetail(ids[2])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ซ้ายล่างสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[250px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[3])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[3]}`}
+            onClick={() => goToDetail(ids[3])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ซ้ายบน */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[50px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[4])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[4]}`}
+            onClick={() => goToDetail(ids[4])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ซ้ายล่าง */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[50px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[5])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[5]}`}
+            onClick={() => goToDetail(ids[5])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ขวาล่าง */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[-470px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[6])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[6]}`}
+            onClick={() => goToDetail(ids[6])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ขวาล่างสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[-670px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[7])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[7]}`}
+            onClick={() => goToDetail(ids[7])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ขวาบน */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-470px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[8])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[8]}`}
+            onClick={() => goToDetail(ids[8])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-ขวาบนสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-670px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[9])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[9]}`}
+            onClick={() => goToDetail(ids[9])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+       {/* เล็ก-กลางขวา*/}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-570px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[10])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[10]}`}
+            onClick={() => goToDetail(ids[10])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* เล็ก-กลางขวาสุด */}
+      <div className="relative pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-770px] pointer-events-auto">
+          <img
+            src={RING_IMG_URL}
+            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            aria-hidden="true"
+          />
+          <img
+            src={pokemonSpriteUrl(ids[11])}
+            className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
+            alt={`pokemon-${ids[11]}`}
+            onClick={() => goToDetail(ids[11])}
+            onError={(e) => {
+              e.currentTarget.style.opacity = "0";
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
