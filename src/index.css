@@ -99,7 +99,7 @@ html {
 .type--fighting { background-color: #c85500; filter: drop-shadow(0 0 3px #dc6900); }
 .type--flying   { background-color: #79bcd7; filter: drop-shadow(0 0 3px #78dcff); }
 .type--poison   { background-color: #be78be; filter: drop-shadow(0 0 3px #d28cd2); }
-.type--ground   { background-color: #92bf19; filter: drop-shadow(0 0 3px #b4f000); }
+.type--ground   { background-color: #cca142; filter: drop-shadow(0 0 3px #fac85a); }
 .type--rock     { background-color: #a07850; filter: drop-shadow(0 0 3px #b48c64); }
 .type--bug      { background-color: #32b432; filter: drop-shadow(0 0 3px #46c846); }
 .type--ghost    { background-color: #8c78f0; filter: drop-shadow(0 0 3px #a08cff); }

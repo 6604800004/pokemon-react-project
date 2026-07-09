@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-
-const RANDOM_POKEMON_IDS = [
-  1, 4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 
-  172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212, 213, 
-  214, 215, 217, 300, 305, 306, 307
+const RANDOM_POKEMON_IDS = [ 
+4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 
+172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212, 213, 
+214, 215, 217, 300, 305, 306, 307
 ];
 
 // ตั้งเวลาการสุ่ม
@@ -19,7 +18,7 @@ const RING_IMG_URL =
   "https://th.portal-pokemon.com/play/resources/pokedex/img/random_bg.png";
 
 const pokemonSpriteUrl = (id: number) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+  `https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/${id}.png`;
 
 const pickUniqueIds = (n: number): number[] => {
   const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
@@ -64,10 +63,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-กลางซ้าย*/}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[150px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[110px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -84,10 +83,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-กลางซ้ายสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[350px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[325px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -104,10 +103,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ซ้ายบนสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[250px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[215px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -124,10 +123,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ซ้ายล่างสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[250px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[215px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -144,10 +143,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ซ้ายบน */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[50px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[4px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -164,10 +163,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ซ้ายล่าง */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[50px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[4px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -184,10 +183,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ขวาล่าง */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[-470px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[-420px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -204,10 +203,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ขวาล่างสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[90px] -translate-x-[-670px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[-630px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -224,10 +223,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ขวาบน */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-470px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-420px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -244,10 +243,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-ขวาบนสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-670px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-630px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -264,10 +263,10 @@ function RandomPokemonBalls() {
 
        {/* เล็ก-กลางขวา*/}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-570px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[-525px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -284,10 +283,10 @@ function RandomPokemonBalls() {
 
       {/* เล็ก-กลางขวาสุด */}
       <div className="relative pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-770px] pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[-745px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-[125px] w-[125px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img

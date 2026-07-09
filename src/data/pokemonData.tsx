@@ -15,7 +15,6 @@ export type TypePokemon = {
     }[];
 }
 
-// เพิ่มใหม่: type สำหรับหน้า PokemonDetail
 export type PokemonDetailData = {
     id: number;
     name: string;
@@ -36,6 +35,17 @@ export type PokemonDetailData = {
             name: string;
         };
     }[];
+    abilities: {
+        slot: number;
+        is_hidden: boolean;
+        ability: {
+            name: string;
+            url: string;
+        };
+    }[];
+    species: {
+        url: string;
+    };
 };
 
 export type TypeDamageRelations = {
@@ -50,3 +60,12 @@ export const getPokemonId = (url: string) => {
     const parts = url.split('/').filter(Boolean);
     return parts[parts.length - 1];
 }
+
+export const STAT_LABEL: Record<string, string> = {
+  hp: "HP",
+  attack: "โจมตี",
+  defense: "ป้องกัน",
+  "special-attack": "โจมตีพิเศษ",
+  "special-defense": "ป้องกันพิเศษ",
+  speed: "ความเร็ว",
+};

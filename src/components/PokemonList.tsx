@@ -7,9 +7,8 @@ import RandomPokemonBalls from "./Randompokemon";
 const build = (name: string, isDefault: boolean) =>
   isDefault ||
   name.includes("-mega") ||
-  name.includes("-gmax") ||
   name.includes("-galar") ||
-  (name.includes("-alola") && !name.includes("-totem") && !name.includes("-cap"));
+  (name.includes("-alola") && !name.includes("-totem") && !name.includes("-cap") && !name.includes("-gmax"));
 
 //กรองตอนค้นหา
 const filterByKeyword = (list: Tdata[], keyword: string) => {
@@ -189,8 +188,7 @@ function PokemonList() {
 
             <div className="absolute bottom-[150px] left-[150px] right-10 z-10">
               <div className="search-panel absolute">
-
-                {/* วงกลม/สไปรท์ Pokemon สุ่มรอบช่องค้นหา */}
+                {/* วงกลม สุ่มรอบช่องค้นหา */}
                 <RandomPokemonBalls />
 
                 <p className="text-[#b3eafe] text-xl pb-4 pl-1 [filter:drop-shadow(0_0_5px_#fdfdfd)]">
@@ -206,7 +204,7 @@ function PokemonList() {
                   />
                   <button
                     onClick={handleSearch}
-                    className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 hover:bg-[#8fd8f8] transition-colors"
+                    className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
                   >
                     <img
                       src="https://th.portal-pokemon.com/play/resources/pokedex/img/icon_magnifying_glass.png"
@@ -234,7 +232,7 @@ function PokemonList() {
                 style={{ aspectRatio: "2 / 3" }}
               >
                 <img
-                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
+                  src={`https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
                   alt={pokemon.name}
                   className="w-[60%] h-[60%] object-contain p-[5px] [filter:drop-shadow(0_0_1.5px_#fdfdfd)]"
                 />
