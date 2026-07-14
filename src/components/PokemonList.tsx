@@ -2,13 +2,17 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { getPokemonId, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
+import { POKEAPI_BASE_URL, SPRITE_CDN_URL, ASSETS_BASE_URL } from "../config";
 
 //แสดงร่างของ pokemon ยกเว้น totem, cap
 const build = (name: string, isDefault: boolean) =>
   isDefault ||
   name.includes("-mega") ||
   name.includes("-galar") ||
-  (name.includes("-alola") && !name.includes("-totem") && !name.includes("-cap") && !name.includes("-gmax"));
+  (name.includes("-alola") &&
+    !name.includes("-totem") &&
+    !name.includes("-cap") &&
+    !name.includes("-gmax"));
 
 //กรองตอนค้นหา
 const filterByKeyword = (list: Tdata[], keyword: string) => {
@@ -18,48 +22,54 @@ const filterByKeyword = (list: Tdata[], keyword: string) => {
     (pokemon) =>
       pokemon.id.padStart(4, "0").includes(key) ||
       pokemon.name.toLowerCase().includes(key) ||
-      pokemon.types.some((type) => type.toLowerCase().includes(key))
+      pokemon.types.some((type) => type.toLowerCase().includes(key)),
   );
 };
 
 const mergeData = (prev: Tdata[], incoming: Tdata[]) => {
   const map = new Map(prev.map((pokemon) => [pokemon.name, pokemon]));
-  incoming.forEach((pokemon) => !map.has(pokemon.name) && map.set(pokemon.name, pokemon));
+  incoming.forEach(
+    (pokemon) => !map.has(pokemon.name) && map.set(pokemon.name, pokemon),
+  );
   return [...map.values()].sort((a, b) => +a.id - +b.id);
 };
 
 const fetchBatch = async (offset: number) => {
   const list = await fetch(
-    `https://pokeapi.co/api/v2/pokemon-species?limit=20&offset=${offset}`
+    `${POKEAPI_BASE_URL}/pokemon-species?limit=20&offset=${offset}`,
   ).then((res) => res.json());
 
   const allSpecies = await Promise.all(
-    list.results.map((species: { url: string }) => fetch(species.url).then((res) => res.json()))
+    list.results.map((species: { url: string }) =>
+      fetch(species.url).then((res) => res.json()),
+    ),
   );
 
   const entries = allSpecies.flatMap((species, index) =>
     species.varieties
-      .filter((varieties: { pokemon: { name: string }; is_default: boolean }) =>
-        build(varieties.pokemon.name, varieties.is_default) && !varieties.pokemon.name.includes("raichu-mega")
+      .filter(
+        (varieties: { pokemon: { name: string }; is_default: boolean }) =>
+          build(varieties.pokemon.name, varieties.is_default) &&
+          !varieties.pokemon.name.includes("raichu-mega"),
       )
       .map((varieties: { pokemon: { name: string; url: string } }) => ({
         name: varieties.pokemon.name,
         url: varieties.pokemon.url,
         speciesUrl: list.results[index].url,
-      }))
+      })),
   );
 
   const newData = await Promise.all(
     entries.map((e: { name: string; url: string; speciesUrl: string }) =>
       fetch(e.url)
-        .then((r) => r.json())
-        .then((p) => ({
+        .then((res) => res.json())
+        .then((data) => ({
           name: e.name,
           url: e.url,
           id: getPokemonId(e.speciesUrl),
-          types: p.types.map((t: { type: { name: string } }) => t.type.name),
-        }))
-    )
+          types: data.types.map((t: { type: { name: string } }) => t.type.name),
+        })),
+    ),
   );
 
   return { newData, hasNext: !!list.next };
@@ -80,11 +90,11 @@ function PokemonList() {
 
   const filteredData = useMemo(
     () => filterByKeyword(data, searchKeyword),
-    [data, searchKeyword]
+    [data, searchKeyword],
   );
   const visibleData = useMemo(
     () => filteredData.slice(0, visibleCount),
-    [filteredData, visibleCount]
+    [filteredData, visibleCount],
   );
   const hasMoreCached = visibleCount < filteredData.length;
   const showLoadMore = !loading && (hasMoreCached || hasMore);
@@ -93,7 +103,11 @@ function PokemonList() {
     if (isFetching.current) return;
     isFetching.current = true;
     setLoading(true);
-    try { await fn(); } catch (e) { console.error(e); } finally {
+    try {
+      await fn();
+    } catch (e) {
+      console.error(e);
+    } finally {
       setLoading(false);
       isFetching.current = false;
     }
@@ -139,10 +153,12 @@ function PokemonList() {
     const next = visibleCount + 16;
     if (searchKeyword) {
       if (filteredData.length >= next || !hasMore) setVisibleCount(next);
-      else fetchUntilEnough(searchKeyword, next).then(() => setVisibleCount(next));
+      else
+        fetchUntilEnough(searchKeyword, next).then(() => setVisibleCount(next));
     } else {
       if (hasMoreCached) setVisibleCount(next);
-      else if (hasMore) fetchSpecies(offsetRef.current + 20).then(() => setVisibleCount(next));
+      else if (hasMore)
+        fetchSpecies(offsetRef.current + 20).then(() => setVisibleCount(next));
     }
   };
 
@@ -160,27 +176,26 @@ function PokemonList() {
 
       <div className="bg-[#1b252f]">
         <div className="relative max-w-[1400px] mx-auto">
-
           <div className="relative overflow-hidden">
             <div className="absolute cursor-pointer top-10 left-1/2 -translate-x-1/2 text-[28px] text-black z-40 whitespace-nowrap px-[200px]">
               โปเกเด็กซ์
             </div>
 
             <img
-              src="https://th.portal-pokemon.com/play/resources/pokedex/img/list_top_bg.jpg"
+              src={`${ASSETS_BASE_URL}/list_top_bg.jpg`}
               alt="Pokedex banner"
               className="w-full block"
             />
 
             <img
-              src="https://th.portal-pokemon.com/play/resources/pokedex/img/pokedex_bg.png"
+              src={`${ASSETS_BASE_URL}/pokedex_bg.png`}
               className="absolute inset-0 w-auto h-auto object-cover object-center pointer-events-none select-none z-20"
               aria-hidden="true"
             />
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-7">
               <img
-                src="https://th.portal-pokemon.com/play/resources/pokedex/img/pokemon_list_bg.png"
+                src={`${ASSETS_BASE_URL}/pokemon_list_bg.png`}
                 className="w-[1350px] h-[550px] object-cover object-center select-none animate-spin [animation-duration:3s]"
                 aria-hidden="true"
               />
@@ -200,26 +215,25 @@ function PokemonList() {
                     value={inputText}
                     className="search-input flex-1 min-w-0 py-2 pl-[50px] pr-[280px] text-[22px] border-none outline-none bg-white"
                     onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") handleSearch(); }}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") handleSearch();
+                    }}
                   />
                   <button
                     onClick={handleSearch}
                     className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
                   >
                     <img
-                      src="https://th.portal-pokemon.com/play/resources/pokedex/img/icon_magnifying_glass.png"
+                      src={`${ASSETS_BASE_URL}/icon_magnifying_glass.png`}
                       alt="search"
                       className="w-7 h-7 object-contain"
                     />
                   </button>
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
 
         <div className="list-section-bg max-w-[1400px] w-full mx-auto px-10 pt-5 pb-10 min-h-screen">
@@ -227,24 +241,33 @@ function PokemonList() {
             {visibleData.map((pokemon) => (
               <div
                 key={pokemon.name}
-                onClick={() => nav(`/PokeDex/${getPokemonId(pokemon.url).padStart(4, "0")}`)}
+                onClick={() =>
+                  nav(`/PokeDex/${getPokemonId(pokemon.url).padStart(4, "0")}`)
+                }
                 className="pokemon-card-bg flex flex-col items-center cursor-pointer overflow-hidden relative rounded-lg"
                 style={{ aspectRatio: "2 / 3" }}
               >
                 <img
-                  src={`https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
+                  src={`${SPRITE_CDN_URL}/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
                   alt={pokemon.name}
                   className="w-[60%] h-[60%] object-contain p-[5px] [filter:drop-shadow(0_0_1.5px_#fdfdfd)]"
                 />
                 <div className="flex flex-col w-[75%] gap-2 flex-1 font-semibold">
-                  <span className="text-[#b3eafe] text-[18px]">{pokemon.id.padStart(4, "0")}</span>
+                  <span className="text-[#b3eafe] text-[18px]">
+                    {pokemon.id.padStart(4, "0")}
+                  </span>
                   <span className="font-bold text-[22px] text-white leading-tight whitespace-pre-line">
-                    {pokemon.name.toUpperCase().replace(/-/, "\n").replace(/-/g, " ")}
+                    {pokemon.name
+                      .toUpperCase()
+                      .replace(/-/, "\n")
+                      .replace(/-/g, " ")}
                   </span>
                 </div>
                 <div className="absolute bottom-[8%] left-10 right-10 z-10 flex gap-3">
                   {pokemon.types.map((type) => (
-                    <span key={type} className={`type type--${type}`}>{type}</span>
+                    <span key={type} className={`type type--${type}`}>
+                      {type}
+                    </span>
                   ))}
                 </div>
               </div>

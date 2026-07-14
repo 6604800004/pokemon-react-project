@@ -1,24 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { SPRITE_CDN_URL, ASSETS_BASE_URL } from "../config";
 
-const RANDOM_POKEMON_IDS = [ 
-4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150, 
-172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212, 213, 
-214, 215, 217, 300, 305, 306, 307
+const RANDOM_POKEMON_IDS = [
+  4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150,
+  172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212,
+  213, 214, 215, 217, 300, 305, 306, 307,
 ];
 
 // ตั้งเวลาการสุ่ม
 const RANDOM_DELAY_SECONDS = 20;
 const RANDOM_DELAY_MS = RANDOM_DELAY_SECONDS * 1000;
 
-const BG_IMG_URL =
-  "https://th.portal-pokemon.com/play/resources/pokedex/img/random_center_bg.png";
+const BG_IMG_URL = `${ASSETS_BASE_URL}/random_center_bg.png`;
 
-const RING_IMG_URL =
-  "https://th.portal-pokemon.com/play/resources/pokedex/img/random_bg.png";
+const RING_IMG_URL = `${ASSETS_BASE_URL}/random_bg.png`;
 
 const pokemonSpriteUrl = (id: number) =>
-  `https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/${id}.png`;
+  `${SPRITE_CDN_URL}/sprites/pokemon/other/official-artwork/${id}.png`;
 
 const pickUniqueIds = (n: number): number[] => {
   const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
@@ -206,7 +205,7 @@ function RandomPokemonBalls() {
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[-630px] pointer-events-auto">
           <img
             src={RING_IMG_URL}
-            className="h-h-[120px] w-[120px] object-contain select-none pointer-events-none"
+            className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
           <img
@@ -261,7 +260,7 @@ function RandomPokemonBalls() {
         </div>
       </div>
 
-       {/* เล็ก-กลางขวา*/}
+      {/* เล็ก-กลางขวา*/}
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[-525px] pointer-events-auto">
           <img
