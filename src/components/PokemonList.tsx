@@ -9,11 +9,11 @@ const build = (name: string, isDefault: boolean) =>
   isDefault ||
   name.includes("-mega") ||
   name.includes("-galar") ||
+  name.includes("-gmax") ||
   (name.includes("-alola") &&
     !name.includes("-totem") &&
-    !name.includes("-cap") &&
-    !name.includes("-gmax"));
-    
+    !name.includes("-cap"));
+
 //กรองตอนค้นหา
 const filterByKeyword = (list: Tdata[], keyword: string) => {
   const key = keyword.toLowerCase().trim(); //ทำเป็นตัวเลข และตัดช่องว่างหน้า-หลัง

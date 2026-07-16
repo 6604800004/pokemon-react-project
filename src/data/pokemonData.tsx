@@ -71,7 +71,6 @@ export type Variety = {
   pokemon: { name: string; url: string };
 };
 
-
 export const Status_Label: Record<string, string> = {
   hp: "HP",
   attack: "โจมตี",

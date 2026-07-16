@@ -19,7 +19,7 @@ function StatBar({ label, value }: StatBarProps) {
             key={i}
             className={
               i < filledSegments
-                ? "flex-1 bg-[#5ec8f0] border border-[#b3eafe] [filter:drop-shadow(0_0_2px_#ffffff)]"
+                ? "flex-1 bg-[#5ec8f0] border border-[#b3eafe] [filter:drop-shadow(0_0_3px_#ffffff)]"
                 : "flex-1 bg-transparent border border-[#466e9b]"
             }
           />
