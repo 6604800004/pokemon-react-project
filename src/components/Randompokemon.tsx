@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { SPRITE_CDN_URL, ASSETS_BASE_URL } from "../config";
+import { CDN, ASSETS_Base } from "../config";
 
 const RANDOM_POKEMON_IDS = [
   4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150,
@@ -12,12 +12,12 @@ const RANDOM_POKEMON_IDS = [
 const RANDOM_DELAY_SECONDS = 20;
 const RANDOM_DELAY_MS = RANDOM_DELAY_SECONDS * 1000;
 
-const BG_IMG_URL = `${ASSETS_BASE_URL}/random_center_bg.png`;
+const BG_IMG_URL = `${ASSETS_Base}/random_center_bg.png`;
 
-const RING_IMG_URL = `${ASSETS_BASE_URL}/random_bg.png`;
+const RING_IMG_URL = `${ASSETS_Base}/random_bg.png`;
 
 const pokemonSpriteUrl = (id: number) =>
-  `${SPRITE_CDN_URL}/sprites/pokemon/other/official-artwork/${id}.png`;
+  `${CDN}/sprites/pokemon/other/official-artwork/${id}.png`;
 
 const pickUniqueIds = (n: number): number[] => {
   const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);

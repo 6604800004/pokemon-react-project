@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
+import { API_Base, CDN, ASSETS_Base } from "../config";
 import { getPokemonId, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
-import { POKEAPI_BASE_URL, SPRITE_CDN_URL, ASSETS_BASE_URL } from "../config";
 
 //แสดงร่างของ pokemon ยกเว้น totem, cap
 const build = (name: string, isDefault: boolean) =>
@@ -13,7 +13,7 @@ const build = (name: string, isDefault: boolean) =>
     !name.includes("-totem") &&
     !name.includes("-cap") &&
     !name.includes("-gmax"));
-
+    
 //กรองตอนค้นหา
 const filterByKeyword = (list: Tdata[], keyword: string) => {
   const key = keyword.toLowerCase().trim(); //ทำเป็นตัวเลข และตัดช่องว่างหน้า-หลัง
@@ -36,7 +36,7 @@ const mergeData = (prev: Tdata[], incoming: Tdata[]) => {
 
 const fetchBatch = async (offset: number) => {
   const list = await fetch(
-    `${POKEAPI_BASE_URL}/pokemon-species?limit=20&offset=${offset}`,
+    `${API_Base}/pokemon-species?limit=20&offset=${offset}`,
   ).then((res) => res.json());
 
   const allSpecies = await Promise.all(
@@ -182,20 +182,20 @@ function PokemonList() {
             </div>
 
             <img
-              src={`${ASSETS_BASE_URL}/list_top_bg.jpg`}
+              src={`${ASSETS_Base}/list_top_bg.jpg`}
               alt="Pokedex banner"
               className="w-full block"
             />
 
             <img
-              src={`${ASSETS_BASE_URL}/pokedex_bg.png`}
+              src={`${ASSETS_Base}/pokedex_bg.png`}
               className="absolute inset-0 w-auto h-auto object-cover object-center pointer-events-none select-none z-20"
               aria-hidden="true"
             />
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-7">
               <img
-                src={`${ASSETS_BASE_URL}/pokemon_list_bg.png`}
+                src={`${ASSETS_Base}/pokemon_list_bg.png`}
                 className="w-[1350px] h-[550px] object-cover object-center select-none animate-spin [animation-duration:3s]"
                 aria-hidden="true"
               />
@@ -225,7 +225,7 @@ function PokemonList() {
                     className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
                   >
                     <img
-                      src={`${ASSETS_BASE_URL}/icon_magnifying_glass.png`}
+                      src={`${ASSETS_Base}/icon_magnifying_glass.png`}
                       alt="search"
                       className="w-7 h-7 object-contain"
                     />
@@ -248,9 +248,9 @@ function PokemonList() {
                 style={{ aspectRatio: "2 / 3" }}
               >
                 <img
-                  src={`${SPRITE_CDN_URL}/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
+                  src={`${CDN}/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
                   alt={pokemon.name}
-                  className="w-[60%] h-[60%] object-contain p-[5px] [filter:drop-shadow(0_0_1.5px_#fdfdfd)]"
+                  className="w-[60%] h-[60%] object-contain p-[5px] [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_2px_#ffffff)]"
                 />
                 <div className="flex flex-col w-[75%] gap-2 flex-1 font-semibold">
                   <span className="text-[#b3eafe] text-[18px]">

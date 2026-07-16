@@ -61,7 +61,18 @@ export const getPokemonId = (url: string) => {
     return parts[parts.length - 1];
 }
 
-export const STAT_LABEL: Record<string, string> = {
+export type StatBarProps = {
+  label: string;
+  value: number;
+};
+
+export type Variety = {
+  is_default: boolean;
+  pokemon: { name: string; url: string };
+};
+
+
+export const Status_Label: Record<string, string> = {
   hp: "HP",
   attack: "โจมตี",
   defense: "ป้องกัน",
