@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { API_Base, CDN, ASSETS_Base, RAW_URL } from "../config";
 import { type PokemonDetailData, type TypeDamageRelations, type Variety } from "../data/pokemonData";
-import { Status_Label } from "../data/pokemonData";
+import { BuildPokemon, Status_Label } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
 
@@ -17,9 +17,11 @@ function PokemonDetail() {
   const [nextPokemon, setNextPokemon] = useState<{ id: number; name: string; } | null>(null);
   const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
   const [varieties, setVarieties] = useState<Variety[]>([]);
-  
+  const [evolutionChainUrl, setEvolutionChainUrl] = useState("");
+
   useEffect(() => {
-    if (!id) { nav("/404", { replace: true });
+    if (!id) {
+      nav("/404", { replace: true });
       return;
     }
     let cancelled = false;
@@ -45,7 +47,12 @@ function PokemonDetail() {
           (g: { language: { name: string } }) => g.language.name === "en",
         );
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
-        setVarieties(speciesJson.varieties ?? []);
+        setVarieties(
+          (speciesJson.varieties ?? []).filter((v: Variety) =>
+            BuildPokemon(v.pokemon.name, v.is_default),
+          ),
+        );
+        setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
         const prevId = numericId - 1;
         const nextId = numericId + 1;
@@ -57,7 +64,7 @@ function PokemonDetail() {
               if (!cancelled && data)
                 setPrevPokemon({ id: data.id, name: data.name });
             })
-            .catch(() => {});
+            .catch(() => { });
         } else {
           setPrevPokemon(null);
         }
@@ -123,7 +130,7 @@ function PokemonDetail() {
 
   const spriteUrl = toJsdelivr(
     data.sprites.other["official-artwork"].front_default ??
-      data.sprites.front_default,
+    data.sprites.front_default,
   );
 
   const handlePreviousPokemon = () => {
@@ -135,6 +142,7 @@ function PokemonDetail() {
     const nextId = data.id + 1;
     nav(`/PokeDex/${nextId.toString().padStart(4, "0")}`);
   };
+
 
   return (
     <>
@@ -405,7 +413,10 @@ function PokemonDetail() {
           {/* ร่าง */}
           {varieties.length > 0 && (
             <div className="absolute top-[1050px] left-[6%] w-[88%] pointer-events-auto">
-              <PokemonForms varieties={varieties} />
+              <PokemonForms
+                varieties={varieties}
+                evolutionChainUrl={evolutionChainUrl}
+              />
             </div>
           )}
 

@@ -1,20 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { API_Base, CDN, ASSETS_Base } from "../config";
-import { getPokemonId, type Tdata } from "../data/pokemonData";
+import { getPokemonId,BuildPokemon ,type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
-//แสดงร่างของ pokemon ยกเว้น totem, cap
-const build = (name: string, isDefault: boolean) =>
-  isDefault ||
-  name.includes("-mega") ||
-  name.includes("-galar") ||
-  name.includes("-gmax") ||
-  (name.includes("-alola") &&
-    !name.includes("-totem") &&
-    !name.includes("-cap"));
-
-//กรองตอนค้นหา
 const filterByKeyword = (list: Tdata[], keyword: string) => {
   const key = keyword.toLowerCase().trim(); //ทำเป็นตัวเลข และตัดช่องว่างหน้า-หลัง
   if (!key) return list;
@@ -49,7 +38,7 @@ const fetchBatch = async (offset: number) => {
     species.varieties
       .filter(
         (varieties: { pokemon: { name: string }; is_default: boolean }) =>
-          build(varieties.pokemon.name, varieties.is_default) &&
+          BuildPokemon(varieties.pokemon.name, varieties.is_default) &&
           !varieties.pokemon.name.includes("raichu-mega"),
       )
       .map((varieties: { pokemon: { name: string; url: string } }) => ({
@@ -236,7 +225,7 @@ function PokemonList() {
           </div>
         </div>
 
-        <div className="list-section-bg max-w-[1400px] w-full mx-auto px-10 pt-5 pb-10 min-h-screen">
+        <div className="list-section-bg relative max-w-[1400px] gap-5 w-full mx-auto px-10 pt-5 pb-10 min-h-screen">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 font-[Noto_Sans,Arial,sans-serif]">
             {visibleData.map((pokemon) => (
               <div

@@ -15,6 +15,15 @@ export type TypePokemon = {
     }[];
 }
 
+export const BuildPokemon = (name: string, isDefault: boolean) =>
+  !name.includes("-totem") &&
+  !name.includes("-cap") &&
+  (isDefault ||
+    name.includes("-mega") ||
+    name.includes("-galar") ||
+    name.includes("-gmax") ||
+    name.includes("-alola"));
+
 export type PokemonDetailData = {
     id: number;
     name: string;
@@ -28,6 +37,7 @@ export type PokemonDetailData = {
             };
         };
     };
+
     types: TypePokemon["types"];
     stats: {
         base_stat: number;
@@ -46,6 +56,7 @@ export type PokemonDetailData = {
     species: {
         url: string;
     };
+    
 };
 
 export type TypeDamageRelations = {
