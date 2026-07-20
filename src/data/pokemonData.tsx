@@ -3,6 +3,7 @@ export type Tdata = {
     url: string;
     id: string;
     types: string[];
+    sprite: string; 
 };
 
 export type TypePokemon = {
@@ -20,6 +21,8 @@ export const BuildPokemon = (name: string, isDefault: boolean) =>
   !name.includes("-cap") &&
   (isDefault ||
     name.includes("-mega") ||
+    name.includes("-mega-x") ||
+    name.includes("-mega-y") ||
     name.includes("-galar") ||
     name.includes("-gmax") ||
     name.includes("-alola"));

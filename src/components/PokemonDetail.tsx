@@ -2,33 +2,42 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { API_Base, CDN, ASSETS_Base, RAW_URL } from "../config";
 import { type PokemonDetailData, type TypeDamageRelations, type Variety } from "../data/pokemonData";
-import { BuildPokemon, Status_Label } from "../data/pokemonData";
+import { BuildPokemon, Status_Label, getPokemonId } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
 
 function PokemonDetail() {
   const nav = useNavigate();
+  const { id } = useParams();
+  const [data, setData] = useState<PokemonDetailData | null>(null);
+  const [speciesId, setSpeciesId] = useState<number | null>(null);
   const [genus, setGenus] = useState("");
   const [flavorText, setFlavorText] = useState("");
   const [weaknesses, setWeaknesses] = useState<Record<string, number>>({});
-  const [data, setData] = useState<PokemonDetailData | null>(null);
-  const { id } = useParams();
-  const [prevPokemon, setPrevPokemon] = useState<{ id: number; name: string; } | null>(null);
-  const [nextPokemon, setNextPokemon] = useState<{ id: number; name: string; } | null>(null);
-  const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
   const [varieties, setVarieties] = useState<Variety[]>([]);
   const [evolutionChainUrl, setEvolutionChainUrl] = useState("");
+  const [prevPokemon, setPrevPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
+  const [nextPokemon, setNextPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
+
+  const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
 
   useEffect(() => {
     if (!id) {
       nav("/404", { replace: true });
       return;
     }
+
     let cancelled = false;
+
     const fetchData = async () => {
       try {
-        const numericId = parseInt(id, 10);
-        const res = await fetch(`${API_Base}/pokemon/${numericId}`);
+        // --- pokemon entry (รองรับทั้ง name และ id เช่น "venusaur-gmax" หรือ "3") ---
+        // PokeAPI ไม่รับเลขนำหน้าศูนย์ (เช่น "0150") ต้องตัดศูนย์ออกก่อนยิง API
+        // แต่ถ้า id เป็นชื่อฟอร์มพิเศษ (เช่น "venusaur-gmax") ให้ใช้ตรงๆ ไม่ต้องแปลง
+        const isNumericId = /^\d+$/.test(id);
+        const apiId = isNumericId ? String(parseInt(id, 10)) : id;
+
+        const res = await fetch(`${API_Base}/pokemon/${apiId}`);
         if (!res.ok) {
           if (!cancelled) nav("/404", { replace: true });
           return;
@@ -37,9 +46,14 @@ function PokemonDetail() {
         if (cancelled) return;
         setData(json);
 
+        // --- species (ใช้หา speciesId, genus, varieties, flavor text) ---
         const speciesRes = await fetch(json.species.url);
         const speciesJson = await speciesRes.json();
         if (cancelled) return;
+
+        const sId = parseInt(getPokemonId(json.species.url), 10);
+        setSpeciesId(sId);
+
         const thGenus = speciesJson.genera.find(
           (g: { language: { name: string } }) => g.language.name === "th",
         );
@@ -47,37 +61,94 @@ function PokemonDetail() {
           (g: { language: { name: string } }) => g.language.name === "en",
         );
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
-        setVarieties(
-          (speciesJson.varieties ?? []).filter((v: Variety) =>
-            BuildPokemon(v.pokemon.name, v.is_default),
-          ),
+
+        // ฟอร์มทั้งหมดของ species นี้ (default + mega/mega-x/mega-y/gmax/alola)
+        // ต้องคง "ลำดับตามที่ API ส่งมา" ไว้ เพื่อใช้เป็นลำดับ prev/next ภายใน species เดียวกัน
+        const speciesVarieties: Variety[] = (speciesJson.varieties ?? []).filter((v: Variety) =>
+          BuildPokemon(v.pokemon.name, v.is_default),
         );
+        setVarieties(speciesVarieties);
         setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
-        const prevId = numericId - 1;
-        const nextId = numericId + 1;
+        // --- โปเกมอนก่อนหน้า / ถัดไป ---
+        // ลำดับ: ฟอร์มพิเศษของ species เดียวกันก่อน แล้วค่อยข้าม species
+        const currentIndex = speciesVarieties.findIndex(
+          (v) => v.pokemon.name === json.name,
+        );
 
-        if (prevId >= 1) {
-          fetch(`${API_Base}/pokemon/${prevId}`)
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data) => {
-              if (!cancelled && data)
-                setPrevPokemon({ id: data.id, name: data.name });
-            })
-            .catch(() => { });
-        } else {
-          setPrevPokemon(null);
-        }
+        const resolveNeighbor = async (
+          direction: "prev" | "next",
+        ): Promise<{ id: number; name: string; nav: string } | null> => {
+          if (currentIndex !== -1) {
+            const neighborIndex =
+              direction === "next" ? currentIndex + 1 : currentIndex - 1;
+            const neighborVariety = speciesVarieties[neighborIndex];
+            if (neighborVariety) {
+              // ยังอยู่ใน species เดียวกัน ไปฟอร์มถัดไป/ก่อนหน้าในกลุ่ม
+              try {
+                const r = await fetch(neighborVariety.pokemon.url);
+                if (r.ok) {
+                  const d = await r.json();
+                  return { id: sId, name: d.name, nav: d.name };
+                }
+              } catch {
+                /* fallthrough ไป species ถัดไป */
+              }
+            }
+          }
 
-        fetch(`${API_Base}/pokemon/${nextId}`)
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data) => {
-            if (!cancelled && data)
-              setNextPokemon({ id: data.id, name: data.name });
-          })
-          .catch(() => setNextPokemon(null));
+          // หมดฟอร์มของ species นี้แล้ว ให้ข้ามไป species ถัดไป/ก่อนหน้า
+          const neighborSpeciesId = direction === "next" ? sId + 1 : sId - 1;
+          if (neighborSpeciesId < 1) return null;
 
-        // flavor text
+          try {
+            if (direction === "next") {
+              // next: ไปฟอร์ม default ของ species ถัดไปเสมอ
+              const r = await fetch(`${API_Base}/pokemon/${neighborSpeciesId}`);
+              if (!r.ok) return null;
+              const d = await r.json();
+              return {
+                id: neighborSpeciesId,
+                name: d.name,
+                nav: neighborSpeciesId.toString().padStart(4, "0"),
+              };
+            }
+
+            // prev: ต้องดู varieties ของ species ก่อนหน้า แล้วไปฟอร์ม "สุดท้าย" (สมมาตรกับ next)
+            const neighborSpeciesRes = await fetch(
+              `${API_Base}/pokemon-species/${neighborSpeciesId}`,
+            );
+            if (!neighborSpeciesRes.ok) return null;
+            const neighborSpeciesJson = await neighborSpeciesRes.json();
+
+            const neighborVarieties: Variety[] = (neighborSpeciesJson.varieties ?? []).filter(
+              (v: Variety) => BuildPokemon(v.pokemon.name, v.is_default),
+            );
+
+            const lastVariety = neighborVarieties[neighborVarieties.length - 1];
+            if (!lastVariety) return null;
+
+            const r = await fetch(lastVariety.pokemon.url);
+            if (!r.ok) return null;
+            const d = await r.json();
+            return {
+              id: neighborSpeciesId,
+              name: d.name,
+              nav: lastVariety.pokemon.name,
+            };
+          } catch {
+            return null;
+          }
+        };
+
+        resolveNeighbor("prev").then((res) => {
+          if (!cancelled) setPrevPokemon(res);
+        });
+        resolveNeighbor("next").then((res) => {
+          if (!cancelled) setNextPokemon(res);
+        });
+
+        // --- flavor text ---
         const thEntry = speciesJson.flavor_text_entries.find(
           (e: { language: { name: string } }) => e.language.name === "th",
         );
@@ -92,7 +163,7 @@ function PokemonDetail() {
             .trim(),
         );
 
-        // ดึง damage_relations ของแต่ละ type ทันทีหลังได้ data มา
+        // --- damage relations (จุดอ่อน) ---
         const typeResults: TypeDamageRelations[] = await Promise.all(
           json.types.map((t) => fetch(t.type.url).then((res) => res.json())),
         );
@@ -116,11 +187,40 @@ function PokemonDetail() {
         if (!cancelled) nav("/404", { replace: true });
       }
     };
-    fetchData();
+
     return () => {
       cancelled = true;
     };
   }, [id, nav]);
+
+  const handlePreviousPokemon = () => {
+    if (!prevPokemon) return;
+    nav(`/PokeDex/${prevPokemon.nav}`);
+  };
+
+  const handleNextPokemon = () => {
+    if (!nextPokemon) return;
+    nav(`/PokeDex/${nextPokemon.nav}`);
+  };
+
+  // กด Arrow ซ้าย/ขวา บนคีย์บอร์ด เพื่อเปลี่ยนโปเกมอนก่อนหน้า/ถัดไป
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return; // อย่าดัก arrow key ตอนผู้ใช้กำลังพิมพ์ในช่อง input
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePreviousPokemon();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextPokemon();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [prevPokemon, nextPokemon, nav]);
 
   if (!data) return null;
 
@@ -129,20 +229,8 @@ function PokemonDetail() {
     .sort((a, b) => b[1] - a[1]);
 
   const spriteUrl = toJsdelivr(
-    data.sprites.other["official-artwork"].front_default ??
-    data.sprites.front_default,
+    data.sprites.other["official-artwork"].front_default ?? data.sprites.front_default,
   );
-
-  const handlePreviousPokemon = () => {
-    const prevId = data.id - 1;
-    if (prevId >= 1) nav(`/PokeDex/${prevId.toString().padStart(4, "0")}`);
-  };
-
-  const handleNextPokemon = () => {
-    const nextId = data.id + 1;
-    nav(`/PokeDex/${nextId.toString().padStart(4, "0")}`);
-  };
-
 
   return (
     <>
@@ -171,14 +259,13 @@ function PokemonDetail() {
               />
               <img
                 src={`${ASSETS_Base}/pokemon_circle_bg.png`}
-                className="absolute h-auto object-cover object-center select-none"
+                className="absolute h-[auto] object-cover object-center select-none"
                 aria-hidden="true"
               />
             </div>
           </div>
 
-          {/* ข้อมูลโปเกมอน */}
-          {/* รูป, ID, ชื่อ  */}
+          {/* ข้อมูลโปเกมอน: รูป, ID, ชื่อ */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-[560px]">
             <div className="relative w-[25%] h-[25%]">
               <img
@@ -187,13 +274,12 @@ function PokemonDetail() {
                 className="w-full h-full object-contain [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_3px_#ffffff)_drop-shadow(0_0_3px_#ffffff)] z-10"
               />
               <span className="absolute -top-[80px] left-1/2 -translate-x-1/2 text-[#b3eafe] text-[39px] z-20">
-                {data.id.toString().padStart(4, "0")}
+                {(speciesId ?? data.id).toString().padStart(4, "0")}
               </span>
               <span
                 className="absolute -top-[40px] left-1/2 -translate-x-1/2 text-[#ffffff] text-[45px] font-bold z-40 whitespace-nowrap"
                 style={{
-                  textShadow:
-                    "0 0 3px #000, 2px 2px 7px #9be1ff, -2px -2px 7px #9be1ff",
+                  textShadow: "0 0 3px #000, 2px 2px 7px #9be1ff, -2px -2px 7px #9be1ff",
                 }}
               >
                 {data.name.replace(/-/g, " ").toUpperCase()}
@@ -201,9 +287,8 @@ function PokemonDetail() {
             </div>
           </div>
 
-          {/* ปุ่มเปลี่ยนโปเกมอน */}
-          {/* ปุ่มซ้าย */}
-          {data.id > 1 ? (
+          {/* ปุ่มเปลี่ยนโปเกมอน: ซ้าย */}
+          {prevPokemon ? (
             <div className="absolute top-[140px] left-0 z-30">
               <img
                 src={`${ASSETS_Base}/arrow_pc_left.png`}
@@ -215,10 +300,7 @@ function PokemonDetail() {
                 className="absolute top-3.5 left-11 pointer-events-auto cursor-pointer group"
               >
                 <div className="relative w-[64px] h-[64px]">
-                  <img
-                    src={`${ASSETS_Base}/arrow_left_btn.png`}
-                    alt="โปเกมอนก่อนหน้า"
-                  />
+                  <img src={`${ASSETS_Base}/arrow_left_btn.png`} alt="โปเกมอนก่อนหน้า" />
                   <img
                     src={`${ASSETS_Base}/arrow_left_btn_on.png`}
                     alt=""
@@ -226,20 +308,18 @@ function PokemonDetail() {
                   />
                 </div>
               </button>
-              {prevPokemon && (
-                <div className="absolute top-3.5 left-[150px] text-white pointer-events-none whitespace-nowrap">
-                  <span className="text-[#b3eafe] text-[19px]">
-                    {prevPokemon.id.toString().padStart(4, "0")}
-                  </span>
-                  <span className="text-[20px] capitalize ml-2">
-                    {prevPokemon.name.toUpperCase()}
-                  </span>
-                </div>
-              )}
+              <div className="absolute top-3.5 left-[150px] text-white pointer-events-none whitespace-nowrap">
+                <span className="text-[#b3eafe] text-[19px]">
+                  {prevPokemon.id.toString().padStart(4, "0")}
+                </span>
+                <span className="text-[20px] capitalize ml-2">
+                  {prevPokemon.name.replace(/-/g, " ").toUpperCase()}
+                </span>
+              </div>
             </div>
           ) : null}
 
-          {/* ปุ่มขวา */}
+          {/* ปุ่มเปลี่ยนโปเกมอน: ขวา */}
           <div className="absolute top-[140px] right-0 z-30">
             <img
               src={`${ASSETS_Base}/arrow_pc_right.png`}
@@ -251,10 +331,7 @@ function PokemonDetail() {
               className="absolute top-3.5 right-11 pointer-events-auto cursor-pointer group"
             >
               <div className="relative w-[64px] h-[64px]">
-                <img
-                  src={`${ASSETS_Base}/arrow_right_btn.png`}
-                  alt="โปเกมอนถัดไป"
-                />
+                <img src={`${ASSETS_Base}/arrow_right_btn.png`} alt="โปเกมอนถัดไป" />
                 <img
                   src={`${ASSETS_Base}/arrow_right_btn_on.png`}
                   alt=""
@@ -265,7 +342,7 @@ function PokemonDetail() {
             {nextPokemon && (
               <div className="absolute top-3.5 right-[150px] text-white pointer-events-none whitespace-nowrap text-right">
                 <span className="text-[20px] capitalize mr-2">
-                  {nextPokemon.name.toUpperCase()}
+                  {nextPokemon.name.replace(/-/g, " ").toUpperCase()}
                 </span>
                 <span className="text-[#b3eafe] text-[19px]">
                   {nextPokemon.id.toString().padStart(4, "0")}
@@ -274,9 +351,8 @@ function PokemonDetail() {
             )}
           </div>
 
-          {/* ประเภท, จุดอ่อน*/}
+          {/* ประเภท, จุดอ่อน */}
           <div className="absolute top-[280px] left-[7%] w-[260px] pointer-events-auto">
-            {/* ประเภท */}
             <p className="text-[28px] text-white mb-3">ประเภท</p>
             <div className="flex flex-col gap-3">
               {data.types.map((t) => (
@@ -289,7 +365,6 @@ function PokemonDetail() {
               ))}
             </div>
 
-            {/* จุดอ่อน */}
             {weaknessList.length > 0 && (
               <div className="mt-6">
                 <p className="text-[28px] text-white mb-3">จุดอ่อน</p>
@@ -329,17 +404,9 @@ function PokemonDetail() {
           <div className="absolute top-[420px] right-[7%] w-[180px] pointer-events-auto">
             <p className="text-[19px] text-[#b3eafe]">เพศ</p>
             <div className="flex items-center gap-2 mt-1">
-              <img
-                src={`${ASSETS_Base}/icon_male.png`}
-                alt="ชาย"
-                className="w-6 h-6 object-contain"
-              />
+              <img src={`${ASSETS_Base}/icon_male.png`} alt="ชาย" className="w-6 h-6 object-contain" />
               <span className="text-[#ffffff] text-[19px]">/</span>
-              <img
-                src={`${ASSETS_Base}/icon_female.png`}
-                alt="หญิง"
-                className="w-6 h-6 object-contain"
-              />
+              <img src={`${ASSETS_Base}/icon_female.png`} alt="หญิง" className="w-6 h-6 object-contain" />
             </div>
           </div>
 
@@ -384,7 +451,7 @@ function PokemonDetail() {
               </div>
             </div>
           </div>
-          {/* เวอร์ชัน-คำบรรยาย */}
+
           {flavorText && (
             <div className="absolute top-[770px] left-[4%] w-[400px] pointer-events-auto">
               <p className="text-[19px] text-[#ffffff] leading-relaxed whitespace-normal break-words">
@@ -412,24 +479,15 @@ function PokemonDetail() {
 
           {/* ร่าง */}
           {varieties.length > 0 && (
-            <div className="absolute top-[1050px] left-[6%] w-[88%] pointer-events-auto">
-              <PokemonForms
-                varieties={varieties}
-                evolutionChainUrl={evolutionChainUrl}
-              />
+            <div className="absolute top-[1050px] w-[1400px] pointer-events-auto">
+              <PokemonForms varieties={varieties} evolutionChainUrl={evolutionChainUrl} />
             </div>
           )}
 
-          {/* กลับไป หน้าหลักโปเกเด็กซ์ */}
+          {/* กลับไปหน้าหลักโปเกเด็กซ์ */}
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-center w-full max-w-[600px] h-20 mx-auto my-5">
-            <button
-              onClick={() => nav("/")}
-              className="relative cursor-pointer group"
-            >
-              <img
-                src={`${ASSETS_Base}/backbtn_bg.png`}
-                alt="หน้าหลักโปเกเด็กซ์"
-              />
+            <button onClick={() => nav("/")} className="relative cursor-pointer group">
+              <img src={`${ASSETS_Base}/backbtn_bg.png`} alt="หน้าหลักโปเกเด็กซ์" />
               <img
                 src={`${ASSETS_Base}/backbtn_bg_on.png`}
                 alt=""
@@ -440,6 +498,7 @@ function PokemonDetail() {
               </span>
             </button>
           </div>
+          
         </div>
       </div>
     </>

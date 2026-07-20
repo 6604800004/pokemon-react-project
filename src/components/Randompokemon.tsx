@@ -30,7 +30,7 @@ function RandomPokemonBalls() {
   const centerId = ids[12];
 
   const goToDetail = (id: number) => {
-    nav(`/PokeDex/${String(id).padStart(4, "0")}`);
+    nav(`/PokeDex/${id}`);
   };
 
   useEffect(() => {

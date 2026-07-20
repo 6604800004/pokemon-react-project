@@ -96,7 +96,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
     <div className="w-full relative">
       {evolutions.length > 1 ? (
         <div
-          className= {`z-50 absolute right-0 h-[350px] max-w-[750px] flex flex-row items-center gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
+          className= {`z-50 absolute right-[0%] flex flex-row items-center gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[150px]"
           }`}
         >
@@ -117,19 +117,19 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                 />
               </div>
 
-              <span className="text-[13px] mt-1">
+              <span className="text-[18px] mt-1">
                 {f.id.toString().padStart(4, "0")}
               </span>
 
-              <span className="text-[14px] capitalize text-center min-h-[36px] flex items-center justify-center leading-tight px-1">
+              <span className="text-[22px] capitalize text-center flex items-center justify-center leading-tight">
                 {f.name.replace(/-/g, " ")}
               </span>
 
-              <div className="flex flex-col gap-1 items-center mt-1 min-h-[56px] justify-start">
+              <div className="flex flex-col gap-1 items-center mt-1 justify-start">
                 {f.types.map((t) => (
                   <span
                     key={t}
-                    className={`type type--${t} !text-[11px] !px-2 !py-0.5 w-[70px] text-center`}
+                    className={`type type--${t} !text-[18px] !px-0 w-[100px] text-center`}
                   >
                     {t}
                   </span>
@@ -201,7 +201,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                   {f.types.map((t) => (
                     <span
                       key={t}
-                      className={`type type--${t} capitalize !text-[15px] !px-5 !py-1 !rounded-full`}
+                      className={`type type--${t}  !text-[15px] !px-5 !py-1 !rounded-full`}
                     >
                       {t}
                     </span>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { API_Base, CDN, ASSETS_Base } from "../config";
-import { getPokemonId,BuildPokemon ,type Tdata } from "../data/pokemonData";
+import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
 const filterByKeyword = (list: Tdata[], keyword: string) => {
@@ -57,6 +57,7 @@ const fetchBatch = async (offset: number) => {
           url: e.url,
           id: getPokemonId(e.speciesUrl),
           types: data.types.map((t: { type: { name: string } }) => t.type.name),
+          sprite: data.sprites?.other?.["official-artwork"]?.front_default ?? "",
         })),
     ),
   );
@@ -231,13 +232,13 @@ function PokemonList() {
               <div
                 key={pokemon.name}
                 onClick={() =>
-                  nav(`/PokeDex/${getPokemonId(pokemon.url).padStart(4, "0")}`)
+                  nav(`/PokeDex/${pokemon.name}`)
                 }
                 className="pokemon-card-bg flex flex-col items-center cursor-pointer overflow-hidden relative rounded-lg"
                 style={{ aspectRatio: "2 / 3" }}
               >
                 <img
-                  src={`${CDN}/sprites/pokemon/other/official-artwork/${getPokemonId(pokemon.url)}.png`}
+                  src={pokemon.sprite}
                   alt={pokemon.name}
                   className="w-[60%] h-[60%] object-contain p-[5px] [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_2px_#ffffff)]"
                 />

@@ -1,7 +1,7 @@
 import { type StatBarProps } from "../data/pokemonData";
 
-const Max_Status = 220; //ค่าพลังสูงสุด
-const Total_Segments = 15; //จำนวนหลอด status
+const Max_Status = 220;
+const Total_Segments = 15;
 
 function getFilledSegments(baseStat: number): number {
   const ratio = Math.min(baseStat / Max_Status, 1);
