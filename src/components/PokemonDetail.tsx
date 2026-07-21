@@ -6,6 +6,25 @@ import { BuildPokemon, Status_Label, getPokemonId } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
 
+// --- ตัวช่วยแปลง URL id <-> (speciesId, formIndex) ---
+// รูปแบบ URL: "0003" = ฟอร์มธรรมดา (formIndex 0), "0003_1" = ฟอร์มพิเศษตัวที่ 1, "0003_2" = ตัวที่ 2 ...
+// formIndex อิงตามลำดับใน speciesJson.varieties (default มาก่อนเสมอ ตามด้วย mega/mega-x/mega-y/gmax ตามลำดับที่ API ส่งมา)
+
+type ParsedId = { speciesId: number; formIndex: number };
+
+const parseRouteId = (raw: string): ParsedId | null => {
+  const match = raw.match(/^(\d+)(?:_(\d+))?$/);
+  if (!match) return null; // ไม่ตรง pattern เลข (เช่น เป็นชื่อฟอร์มพิเศษดิบๆ) ให้ caller จัดการต่อเอง
+  const speciesId = parseInt(match[1], 10);
+  const formIndex = match[2] ? parseInt(match[2], 10) : 0;
+  return { speciesId, formIndex };
+};
+
+const buildRouteId = (speciesId: number, formIndex: number): string => {
+  const padded = speciesId.toString().padStart(4, "0");
+  return formIndex === 0 ? padded : `${padded}_${formIndex}`;
+};
+
 function PokemonDetail() {
   const nav = useNavigate();
   const { id } = useParams();
@@ -31,13 +50,36 @@ function PokemonDetail() {
 
     const fetchData = async () => {
       try {
-        // --- pokemon entry (รองรับทั้ง name และ id เช่น "venusaur-gmax" หรือ "3") ---
-        // PokeAPI ไม่รับเลขนำหน้าศูนย์ (เช่น "0150") ต้องตัดศูนย์ออกก่อนยิง API
-        // แต่ถ้า id เป็นชื่อฟอร์มพิเศษ (เช่น "venusaur-gmax") ให้ใช้ตรงๆ ไม่ต้องแปลง
-        const isNumericId = /^\d+$/.test(id);
-        const apiId = isNumericId ? String(parseInt(id, 10)) : id;
+        // --- แปลง id จาก URL ---
+        // รองรับ 2 แบบ: "0003" / "0003_1" (เลข+index ฟอร์ม) หรือ "venusaur-gmax" (ชื่อดิบ เผื่อลิงก์เก่า/ภายนอก)
+        const parsed = parseRouteId(id);
 
-        const res = await fetch(`${API_Base}/pokemon/${apiId}`);
+        let pokemonName: string; // ชื่อจริงที่จะใช้ fetch /pokemon/{name}
+
+        if (parsed) {
+          // --- กรณี id เป็นเลข: ต้อง fetch species ก่อน เพื่อรู้ว่า formIndex นี้คือฟอร์มอะไร ---
+          const speciesRes = await fetch(`${API_Base}/pokemon-species/${parsed.speciesId}`);
+          if (!speciesRes.ok) {
+            if (!cancelled) nav("/404", { replace: true });
+            return;
+          }
+          const speciesJsonPeek = await speciesRes.json();
+          const varietiesPeek: Variety[] = (speciesJsonPeek.varieties ?? []).filter(
+            (v: Variety) => BuildPokemon(v.pokemon.name, v.is_default),
+          );
+          const targetVariety = varietiesPeek[parsed.formIndex];
+          if (!targetVariety) {
+            if (!cancelled) nav("/404", { replace: true });
+            return;
+          }
+          pokemonName = targetVariety.pokemon.name;
+        } else {
+          // --- กรณี id เป็นชื่อดิบ (เช่น ลิงก์เก่า venusaur-gmax) ---
+          pokemonName = id;
+        }
+
+        // --- pokemon entry ---
+        const res = await fetch(`${API_Base}/pokemon/${pokemonName}`);
         if (!res.ok) {
           if (!cancelled) nav("/404", { replace: true });
           return;
@@ -63,7 +105,7 @@ function PokemonDetail() {
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
 
         // ฟอร์มทั้งหมดของ species นี้ (default + mega/mega-x/mega-y/gmax/alola)
-        // ต้องคง "ลำดับตามที่ API ส่งมา" ไว้ เพื่อใช้เป็นลำดับ prev/next ภายใน species เดียวกัน
+        // ลำดับนี้คือลำดับที่ใช้กำหนด formIndex ใน URL ด้วย (default = index 0 เสมอ)
         const speciesVarieties: Variety[] = (speciesJson.varieties ?? []).filter((v: Variety) =>
           BuildPokemon(v.pokemon.name, v.is_default),
         );
@@ -71,7 +113,6 @@ function PokemonDetail() {
         setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
         // --- โปเกมอนก่อนหน้า / ถัดไป ---
-        // ลำดับ: ฟอร์มพิเศษของ species เดียวกันก่อน แล้วค่อยข้าม species
         const currentIndex = speciesVarieties.findIndex(
           (v) => v.pokemon.name === json.name,
         );
@@ -89,7 +130,11 @@ function PokemonDetail() {
                 const r = await fetch(neighborVariety.pokemon.url);
                 if (r.ok) {
                   const d = await r.json();
-                  return { id: sId, name: d.name, nav: d.name };
+                  return {
+                    id: sId,
+                    name: d.name,
+                    nav: buildRouteId(sId, neighborIndex),
+                  };
                 }
               } catch {
                 /* fallthrough ไป species ถัดไป */
@@ -103,14 +148,14 @@ function PokemonDetail() {
 
           try {
             if (direction === "next") {
-              // next: ไปฟอร์ม default ของ species ถัดไปเสมอ
+              // next: ไปฟอร์ม default (formIndex 0) ของ species ถัดไปเสมอ
               const r = await fetch(`${API_Base}/pokemon/${neighborSpeciesId}`);
               if (!r.ok) return null;
               const d = await r.json();
               return {
                 id: neighborSpeciesId,
                 name: d.name,
-                nav: neighborSpeciesId.toString().padStart(4, "0"),
+                nav: buildRouteId(neighborSpeciesId, 0),
               };
             }
 
@@ -125,7 +170,8 @@ function PokemonDetail() {
               (v: Variety) => BuildPokemon(v.pokemon.name, v.is_default),
             );
 
-            const lastVariety = neighborVarieties[neighborVarieties.length - 1];
+            const lastIndex = neighborVarieties.length - 1;
+            const lastVariety = neighborVarieties[lastIndex];
             if (!lastVariety) return null;
 
             const r = await fetch(lastVariety.pokemon.url);
@@ -134,7 +180,7 @@ function PokemonDetail() {
             return {
               id: neighborSpeciesId,
               name: d.name,
-              nav: lastVariety.pokemon.name,
+              nav: buildRouteId(neighborSpeciesId, lastIndex),
             };
           } catch {
             return null;
@@ -188,6 +234,7 @@ function PokemonDetail() {
       }
     };
 
+    fetchData();
     return () => {
       cancelled = true;
     };
@@ -498,7 +545,7 @@ function PokemonDetail() {
               </span>
             </button>
           </div>
-          
+
         </div>
       </div>
     </>

@@ -96,44 +96,54 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
     <div className="w-full relative">
       {evolutions.length > 1 ? (
         <div
-          className= {`z-50 absolute right-[0%] flex flex-row items-center gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
+          className= {`z-50 absolute right-0 h-[350px] flex flex-row items-start gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[150px]"
           }`}
         >
-          <div>
+          <div className="flex items-center h-[100%]">
             <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
           </div>
 
-          {evolutions.map((f) => (
-            <div key={f.id} className="flex flex-col items-center shrink-0">
-              <div
-                className="w-[130px] h-[130px] flex items-center justify-center bg-contain bg-center bg-no-repeat shrink-0"
-                style={{ backgroundImage: `url(${FORM_BG_EVO})` }}
-              >
+          {evolutions.map((f, index) => (
+            <div key={f.id} className="flex items-start gap-4 shrink-0">
+              {index > 0 && (
                 <img
-                  src={f.sprite}
-                  alt={f.name}
-                  className="w-[70%] h-[70%] object-contain [filter:drop-shadow(0_0_0.5px_#ffffff)_drop-shadow(0_0_0.5px_#ffffff)_drop-shadow(0_0_1px_#ffffff)]"
+                  src="https://th.portal-pokemon.com/play/resources/pokedex/img/arrow_down.png"
+                  alt=""
+                  className="w-6 h-6 object-contain rotate-[-90deg] shrink-0 mt-[53px]"
+                  aria-hidden="true"
                 />
-              </div>
+              )}
+              <div className="flex flex-col items-center shrink-0">
+                <div
+                  className="w-[130px] h-[130px] flex items-center justify-center bg-contain bg-center bg-no-repeat shrink-0"
+                  style={{ backgroundImage: `url(${FORM_BG_EVO})` }}
+                >
+                  <img
+                    src={f.sprite}
+                    alt={f.name}
+                    className="w-[80%] h-[80%] object-contain [filter:drop-shadow(0_0_0.5px_#ffffff)_drop-shadow(0_0_0.5px_#ffffff)_drop-shadow(0_0_1px_#ffffff)]"
+                  />
+                </div>
 
-              <span className="text-[18px] mt-1">
-                {f.id.toString().padStart(4, "0")}
-              </span>
+                <span className="text-[18px] text-center mt-1">
+                  {f.id.toString().padStart(4, "0")}
+                </span>
 
-              <span className="text-[22px] capitalize text-center flex items-center justify-center leading-tight">
-                {f.name.replace(/-/g, " ")}
-              </span>
+                <span className="text-[20px] font-semibold capitalize text-center flex items-center justify-center leading-tight px-1">
+                  {f.name.replace(/-/g, " ")}
+                </span>
 
-              <div className="flex flex-col gap-1 items-center mt-1 justify-start">
-                {f.types.map((t) => (
-                  <span
-                    key={t}
-                    className={`type type--${t} !text-[18px] !px-0 w-[100px] text-center`}
-                  >
-                    {t}
-                  </span>
-                ))}
+                <div className="flex flex-col gap-2 items-center mt-2 justify-start">
+                  {f.types.map((t) => (
+                    <span
+                      key={t}
+                      className={`type type--${t} capitalize !text-center !text-[100%] !px-6 !py-1 !w-full`}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -141,7 +151,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
       ) : (
          <div
           className={`z-50 absolute right-0 flex flex-row items-center gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
-            hasOtherForms ? "top-[500px]" : "top-[150px]"
+            hasOtherForms ? "top-[500px]" : "top-[110px]"
           }`}
         >
             <span className="text-[160%] whitespace-nowrap">
@@ -158,8 +168,8 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
             backgroundSize: "100% 100%",
           }}
         >
-          <p className="absolute left-[4%] text-[28px] text-[#b3eafe]">ร่าง</p>
-          <span className="absolute left-[6%] top-[60px] w-full text-left text-white text-[16px] font-['Noto_Sans']">
+          <p className="absolute left-[4%] text-[180%] text-[#b3eafe]">ร่าง</p>
+          <span className="absolute left-[6%] top-[50%] w-full text-left text-white text-[16px] font-['Noto_Sans']">
             ไม่มีร่างอื่น
           </span>
         </div>
@@ -171,7 +181,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
             backgroundSize: "100% 100%",
           }}
         >
-          <p className="absolute left-[4%] top-0 text-[28px] text-[#b3eafe]">
+          <p className="absolute left-[4%] top-[0%] text-[180%] text-[#b3eafe]">
             ร่าง
           </p>
 
@@ -201,7 +211,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                   {f.types.map((t) => (
                     <span
                       key={t}
-                      className={`type type--${t}  !text-[15px] !px-5 !py-1 !rounded-full`}
+                      className={`type type--${t} capitalize !text-[100%] !px-6 !py-1 !rounded-full`}
                     >
                       {t}
                     </span>
