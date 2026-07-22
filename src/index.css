@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 html {
-  overflow-y: scroll;
+  overflow-y: scroll; /* กันหน้าเลื่อนซ้าย-ขวากระตุกตอนสลับหน้าที่ความสูงเนื้อหาไม่เท่ากัน (scrollbar โชว์ตลอด) */
 }
 
-/* Logo */
+/* โลโก้ Pokemon */
 .logo__ {
   background-image: url("https://th.portal-pokemon.com/public_assets/images/logo.png");
   background-size: contain;
@@ -16,13 +16,13 @@ html {
   height: 50px;
 }
 
-/* Pokemon card bg */
+/* การ์ดโปรเกม่อนหน้าหลัก */
 .pokemon-card-bg {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/list_pokemon_bg.png");
   background-size: 100% auto;
 }
 
-/* List section bg */
+/* พื้นหลังการ์ด */
 .list-section-bg {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/list_bg.jpg");
   background-position: top;
@@ -30,7 +30,7 @@ html {
   background-size: 100% auto;
 }
 
-/* Detail page bg */
+/* พื้นหลังหน้ารายละเอียด */
 .detail-section-bg {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/list_bg.jpg");
   background-size: cover;
@@ -39,18 +39,17 @@ html {
   background-color: #0a0e1a;
 }
 
-/* Load more button */
+/* ปุ่มค้นหาเพิ่มเติม */
 .load-more-btn {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/morebtn_bg_sp.png");
   background-size: 100% 100%;
   background-repeat: no-repeat;
 }
-
 .load-more-btn:hover {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/morebtn_bg_sp_on.png");
 }
 
-/* Loading gif */
+/* ไอคอนกำลังโหลด */
 .loading-gif {
   background-image: url("https://th.portal-pokemon.com/play/resources/pokedex/img/ajax-loader.gif");
   background-size: contain;
@@ -58,12 +57,12 @@ html {
   background-position: center;
 }
 
-/* Search input selection color */
+/* สีตอนไฮไลต์ข้อความในช่องค้นหา */
 .search-input::selection {
   background-color: #b3eafe;
 }
 
-/* NotFound dot pattern */
+/* ลายจุดพื้นหลังหน้าไม่พบ - ใช้ radial-gradient ทำลายจุดแทนรูปภาพ ประหยัด asset */
 .notfound-dots::before {
   content: "";
   position: absolute;
@@ -74,7 +73,7 @@ html {
   background-size: 36px 36px;
 }
 
-/* Pokeball button hover */
+/* เอฟเฟกต์ปุ่มโปเกบอลตอนชี้เมาส์ */
 .pokeball-ball {
   transition: transform 0.5s ease;
   background: linear-gradient(to bottom,
@@ -91,11 +90,12 @@ html {
   transition: transform 0.5s ease;
 }
 
+/* หมุนกลับด้านตรงข้ามกับ .pokeball-ball ให้ดูเหมือนวงในหมุนสวนวงนอก */
 .pokeball-btn:hover .pokeball-center {
   transform: rotate(-180deg);
 }
 
-/* Type badge colors */
+/* สีป้าย type */
 .type {
   @apply px-[35px] py-[4px] rounded-full text-white text-[16px];
 }
