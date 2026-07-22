@@ -19,6 +19,7 @@ export type TypePokemon = {
 export const BuildPokemon = (name: string, isDefault: boolean) =>
   !name.includes("-totem") &&
   !name.includes("-cap") &&
+  !name.includes("raichu-mega") &&
   (isDefault ||
     name.includes("-mega") ||
     name.includes("-mega-x") ||

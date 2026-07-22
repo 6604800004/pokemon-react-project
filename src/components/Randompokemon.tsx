@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { CDN, ASSETS_Base } from "../config";
+import { CDN, ASSETS_Base, OFFICIAL_URL} from "../config";
 
 const RANDOM_POKEMON_IDS = [
-  4, 7, 25, 37, 38, 39, 52, 54, 63, 74, 92, 95, 113, 129, 131, 133, 143, 150,
-  172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207, 208, 210, 211, 212,
-  213, 214, 215, 217, 300, 305, 306, 307,
+  1, 4, 6, 7, 9, 25, 37, 38, 39, 52, 54, 63, 74, 92, 94, 95, 113, 129, 130,
+  131, 133, 143, 149, 150, 172, 175, 196, 200, 201, 202, 203, 204, 205, 206,
+  207, 208, 210, 211, 212, 213, 214, 215, 217, 248, 300, 305, 306, 307, 384,
+  445, 448, 658, 700, 778, 812, 888,
 ];
 
 // ตั้งเวลาการสุ่ม
@@ -18,6 +19,20 @@ const RING_IMG_URL = `${ASSETS_Base}/random_bg.png`;
 
 const pokemonSpriteUrl = (id: number) =>
   `${CDN}/sprites/pokemon/other/official-artwork/${id}.png`;
+
+const pokemonSpriteFallbackUrl = (id: number) =>
+  `${OFFICIAL_URL}/${id}.png}`;
+
+// jsdelivr เป็น CDN สาธารณะ บางครั้งโหลดพลาด/ไม่เจอไฟล์ในแคช ลองสำรองที่ต้นทาง raw github ก่อนซ่อนรูปทิ้ง
+const handleSpriteError = (id: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const img = e.currentTarget;
+  const fallback = pokemonSpriteFallbackUrl(id);
+  if (img.src !== fallback) {
+    img.src = fallback;
+  } else {
+    img.style.opacity = "0";
+  }
+};
 
 const pickUniqueIds = (n: number): number[] => {
   const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
@@ -54,9 +69,7 @@ function RandomPokemonBalls() {
           className="absolute h-[260px] w-[260px] object-contain select-none cursor-pointer transition-transform"
           alt={`pokemon-${centerId}`}
           onClick={() => goToDetail(centerId)}
-          onError={(e) => {
-            e.currentTarget.style.opacity = "0";
-          }}
+          onError={handleSpriteError(centerId)}
         />
       </div>
 
@@ -73,9 +86,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[0]}`}
             onClick={() => goToDetail(ids[0])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[0])}
           />
         </div>
       </div>
@@ -93,9 +104,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[1]}`}
             onClick={() => goToDetail(ids[1])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[1])}
           />
         </div>
       </div>
@@ -113,9 +122,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[2]}`}
             onClick={() => goToDetail(ids[2])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[2])}
           />
         </div>
       </div>
@@ -133,9 +140,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[3]}`}
             onClick={() => goToDetail(ids[3])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[3])}
           />
         </div>
       </div>
@@ -153,9 +158,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[4]}`}
             onClick={() => goToDetail(ids[4])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[4])}
           />
         </div>
       </div>
@@ -173,9 +176,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[5]}`}
             onClick={() => goToDetail(ids[5])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[5])}
           />
         </div>
       </div>
@@ -193,9 +194,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[6]}`}
             onClick={() => goToDetail(ids[6])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[6])}
           />
         </div>
       </div>
@@ -213,9 +212,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[7]}`}
             onClick={() => goToDetail(ids[7])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[7])}
           />
         </div>
       </div>
@@ -233,9 +230,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[8]}`}
             onClick={() => goToDetail(ids[8])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[8])}
           />
         </div>
       </div>
@@ -253,9 +248,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[9]}`}
             onClick={() => goToDetail(ids[9])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[9])}
           />
         </div>
       </div>
@@ -273,9 +266,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[10]}`}
             onClick={() => goToDetail(ids[10])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[10])}
           />
         </div>
       </div>
@@ -293,9 +284,7 @@ function RandomPokemonBalls() {
             className="absolute h-[100px] w-[100px] object-contain select-none cursor-pointer transition-transform"
             alt={`pokemon-${ids[11]}`}
             onClick={() => goToDetail(ids[11])}
-            onError={(e) => {
-              e.currentTarget.style.opacity = "0";
-            }}
+            onError={handleSpriteError(ids[11])}
           />
         </div>
       </div>

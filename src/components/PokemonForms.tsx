@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { CDN, RAW_URL, ASSETS_Base } from "../config";
+import { useNavigate } from "react-router";
+import { CDN, RAW_URL, ASSETS_Base,OR_URL } from "../config";
 
 const FORM_BG_EMPTY = `${ASSETS_Base}/style0_bg.png`;
 const FORM_BG_CARD = `${ASSETS_Base}/style1_bg.png`;
@@ -23,6 +24,7 @@ type FormData = {
 type PokemonFormsProps = {
   varieties: SpeciesVariety[];
   evolutionChainUrl: string;
+  speciesId: number;
 };
 
 const mapForm = (p: any): FormData => ({
@@ -40,7 +42,8 @@ const flattenChain = (node: any, names: string[] = []): string[] => {
   return names;
 };
 
-function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
+function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsProps) {
+  const nav = useNavigate();
   const [forms, setForms] = useState<FormData[]>([]);
   const [evolutions, setEvolutions] = useState<FormData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,9 +71,13 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
       try {
         const chainJson = await fetch(evolutionChainUrl).then((res) => res.json());
         const evoNames = flattenChain(chainJson.chain);
+        const raichuIndex = evoNames.indexOf("raichu");
+        if (raichuIndex !== -1) {
+          evoNames.splice(raichuIndex + 1, 0, "raichu-alola");
+        }
         const evoResults = await Promise.all(
           evoNames.map((name) =>
-            fetch(`https://pokeapi.co/api/v2/pokemon/${name}`).then((res) => res.json()),
+            fetch(`${OR_URL}/${name}`).then((res) => res.json()),
           ),
         );
         if (!cancelled) setEvolutions(evoResults.map(mapForm));
@@ -96,25 +103,30 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
     <div className="w-full relative">
       {evolutions.length > 1 ? (
         <div
-          className= {`z-50 absolute right-0 h-[350px] flex flex-row items-start gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
+          className= {`z-50 absolute right-0 h-[400px] flex flex-row items-center gap-[2%] text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-10 pr-[7%] rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[150px]"
           }`}
         >
-          <div className="flex items-center h-[100%]">
+          <div className="flex items-center h-[100%] mr-8">
             <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
           </div>
 
           {evolutions.map((f, index) => (
-            <div key={f.id} className="flex items-start gap-4 shrink-0">
+            <div key={f.id} className="flex items-center gap-4 shrink-0">
               {index > 0 && (
                 <img
-                  src="https://th.portal-pokemon.com/play/resources/pokedex/img/arrow_down.png"
+                  src={`${ASSETS_Base}/arrow_down.png`}
                   alt=""
-                  className="w-6 h-6 object-contain rotate-[-90deg] shrink-0 mt-[53px]"
+                  className="w-7 h-7 object-contain rotate-[-90deg] shrink-0"
                   aria-hidden="true"
                 />
               )}
-              <div className="flex flex-col items-center shrink-0">
+              <div
+                onClick={() => nav(`/PokeDex/${f.name}`)}
+                className={`flex flex-col items-center shrink-0 cursor-pointer ${
+                  f.types.length > 1 ? "mt-9" : ""
+                }`}
+              >
                 <div
                   className="w-[130px] h-[130px] flex items-center justify-center bg-contain bg-center bg-no-repeat shrink-0"
                   style={{ backgroundImage: `url(${FORM_BG_EVO})` }}
@@ -127,18 +139,18 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                 </div>
 
                 <span className="text-[18px] text-center mt-1">
-                  {f.id.toString().padStart(4, "0")}
+                  {(f.name === "raichu-alola" ? 26 : f.id).toString().padStart(4, "0")}
                 </span>
 
-                <span className="text-[20px] font-semibold capitalize text-center flex items-center justify-center leading-tight px-1">
+                <span className="text-[20px] font-['Noto_Sans'] capitalize text-center flex items-center justify-center leading-tight">
                   {f.name.replace(/-/g, " ")}
                 </span>
 
-                <div className="flex flex-col gap-2 items-center mt-2 justify-start">
+                <div className="flex flex-col gap-2 mt-2 justify-start">
                   {f.types.map((t) => (
                     <span
                       key={t}
-                      className={`type type--${t} capitalize !text-center !text-[100%] !px-6 !py-1 !w-full`}
+                      className={`type type--${t} capitalize !text-center !text-[100%] `}
                     >
                       {t}
                     </span>
@@ -150,7 +162,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
         </div>
       ) : (
          <div
-          className={`z-50 absolute right-0 flex flex-row items-center gap-4 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
+          className={`z-50 absolute right-0 flex flex-row items-center text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[110px]"
           }`}
         >
@@ -187,7 +199,11 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
 
           <div className="flex flex-wrap gap-0 px-[4%] font-['Noto_Sans',_Arial,_sans-serif]">
             {forms.map((f) => (
-              <div key={f.id} className="flex flex-col items-center w-[20%]">
+              <div
+                key={f.id}
+                onClick={() => nav(`/PokeDex/${f.name}`)}
+                className="flex flex-col items-center w-[20%] cursor-pointer"
+              >
                 <div
                   className="relative top-[15%] w-[180%] h-[180%] flex items-center justify-center bg-contain bg-center bg-no-repeat"
                   style={{ backgroundImage: `url(${FORM_BG_POKEBALL})` }}
@@ -195,12 +211,12 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                   <img
                     src={f.sprite}
                     alt={f.name}
-                    className="w-[80%] h-[58%] object-contain relative -top-20 [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_2px_#ffffff)]"
+                    className="w-[80%] h-[58%] object-contain relative -top-[20%] [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_2px_#ffffff)]"
                   />
                 </div>
 
                 <span className="relative -top-[15%] text-[#b3eafe] text-[18px] font-['Noto_Sans',_Arial,_sans-serif]">
-                  {f.id.toString().padStart(4, "0")}
+                  {speciesId.toString().padStart(4, "0")}
                 </span>
 
                 <span className="relative -top-[17%] text-white text-[22px] text-center capitalize min-h-[48px] flex items-center justify-center leading-tight px-1">
@@ -211,7 +227,7 @@ function PokemonForms({ varieties, evolutionChainUrl }: PokemonFormsProps) {
                   {f.types.map((t) => (
                     <span
                       key={t}
-                      className={`type type--${t} capitalize !text-[100%] !px-6 !py-1 !rounded-full`}
+                      className={`type type--${t} capitalize !text-center !px-5 !py-1 !w-[35%]`}
                     >
                       {t}
                     </span>

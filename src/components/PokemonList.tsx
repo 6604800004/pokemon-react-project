@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router";
-import { API_Base, CDN, ASSETS_Base } from "../config";
+import { useNavigate, useSearchParams } from "react-router";
+import { API_Base, ASSETS_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
 const filterByKeyword = (list: Tdata[], keyword: string) => {
-  const key = keyword.toLowerCase().trim(); //ทำเป็นตัวเลข และตัดช่องว่างหน้า-หลัง
+  const key = keyword.toLowerCase().trim();
   if (!key) return list;
   return list.filter(
     (pokemon) =>
@@ -67,9 +67,11 @@ const fetchBatch = async (offset: number) => {
 
 function PokemonList() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialType = searchParams.get("type") ?? "";
   const [data, setData] = useState<Tdata[]>([]);
   const [inputText, setInputText] = useState("");
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState(initialType);
   const [visibleCount, setVisibleCount] = useState(16);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -155,7 +157,11 @@ function PokemonList() {
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
-    fetchSpecies(0);
+    fetchSpecies(0).then(() => {
+      if (initialType && filterByKeyword(dataRef.current, initialType).length < 16) {
+        fetchUntilEnough(initialType, 16);
+      }
+    });
   }, []);
 
   return (
@@ -167,7 +173,15 @@ function PokemonList() {
       <div className="bg-[#1b252f]">
         <div className="relative max-w-[1400px] mx-auto">
           <div className="relative overflow-hidden">
-            <div className="absolute cursor-pointer top-10 left-1/2 -translate-x-1/2 text-[28px] text-black z-40 whitespace-nowrap px-[200px]">
+            <div
+              onClick={() => {
+                setInputText("");
+                setSearchKeyword("");
+                setVisibleCount(16);
+                nav("/PokeDex");
+              }}
+              className="absolute cursor-pointer top-10 left-1/2 -translate-x-1/2 text-[28px] text-black z-40 whitespace-nowrap px-[200px]"
+            >
               โปเกเด็กซ์
             </div>
 

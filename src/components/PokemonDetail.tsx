@@ -37,14 +37,39 @@ function PokemonDetail() {
   const [evolutionChainUrl, setEvolutionChainUrl] = useState("");
   const [prevPokemon, setPrevPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
   const [nextPokemon, setNextPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
+  const [abilityPopup, setAbilityPopup] = useState<{ name: string; text: string } | null>(null);
+  const [abilityLoading, setAbilityLoading] = useState(false);
 
   const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
+
+  const showAbilityInfo = async (name: string, url: string) => {
+    setAbilityPopup({ name, text: "" });
+    setAbilityLoading(true);
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      const thEntry = json.effect_entries?.find(
+        (e: { language: { name: string } }) => e.language.name === "th",
+      );
+      const enEntry = json.effect_entries?.find(
+        (e: { language: { name: string } }) => e.language.name === "en",
+      );
+      const text = thEntry?.effect ?? enEntry?.effect ?? enEntry?.short_effect ?? "ไม่มีข้อมูล";
+      setAbilityPopup({ name, text });
+    } catch {
+      setAbilityPopup({ name, text: "โหลดข้อมูลไม่สำเร็จ" });
+    } finally {
+      setAbilityLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) {
       nav("/404", { replace: true });
       return;
     }
+
+    window.scrollTo(0, 0); // เปลี่ยนโปเกมอนแล้วเลื่อนขึ้นบนสุด ให้เหมือนเปิดหน้าใหม่
 
     let cancelled = false;
 
@@ -250,25 +275,6 @@ function PokemonDetail() {
     nav(`/PokeDex/${nextPokemon.nav}`);
   };
 
-  // กด Arrow ซ้าย/ขวา บนคีย์บอร์ด เพื่อเปลี่ยนโปเกมอนก่อนหน้า/ถัดไป
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return; // อย่าดัก arrow key ตอนผู้ใช้กำลังพิมพ์ในช่อง input
-      }
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        handlePreviousPokemon();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        handleNextPokemon();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [prevPokemon, nextPokemon, nav]);
-
   if (!data) return null;
 
   const weaknessList = Object.entries(weaknesses)
@@ -405,7 +411,8 @@ function PokemonDetail() {
               {data.types.map((t) => (
                 <span
                   key={t.slot}
-                  className={`type type--${t.type.name} capitalize w-full text-center`}
+                  onClick={() => nav(`/PokeDex?type=${t.type.name}`)}
+                  className={`type type--${t.type.name} capitalize w-full text-center cursor-pointer`}
                 >
                   {t.type.name}
                 </span>
@@ -419,7 +426,8 @@ function PokemonDetail() {
                   {weaknessList.map(([typeName]) => (
                     <span
                       key={typeName}
-                      className={`type type--${typeName} capitalize w-full text-center`}
+                      onClick={() => nav(`/PokeDex?type=${typeName}`)}
+                      className={`type type--${typeName} capitalize w-full text-center cursor-pointer`}
                     >
                       {typeName}
                     </span>
@@ -429,56 +437,89 @@ function PokemonDetail() {
             )}
           </div>
 
-          {/* ส่วนสูง */}
-          <div className="absolute top-[350px] right-[7%] w-[290px] pointer-events-auto">
-            <p className="text-[19px] text-[#b3eafe]">ส่วนสูง</p>
-            <p className="text-[19px] text-[#ffffff]">{data.height / 10} m</p>
-          </div>
-
-          {/* ชนิด */}
-          <div className="absolute top-[350px] right-[7%] w-[180px] pointer-events-auto">
-            <p className="text-[19px] text-[#b3eafe]">ชนิด</p>
-            <p className="text-[19px] text-[#ffffff]">{genus}</p>
-          </div>
-
-          {/* น้ำหนัก */}
-          <div className="absolute top-[420px] right-[7%] w-[290px] pointer-events-auto">
-            <p className="text-[19px] text-[#b3eafe]">น้ำหนัก</p>
-            <p className="text-[19px] text-[#ffffff]">{data.weight / 10} kg</p>
-          </div>
-
-          {/* เพศ */}
-          <div className="absolute top-[420px] right-[7%] w-[180px] pointer-events-auto">
-            <p className="text-[19px] text-[#b3eafe]">เพศ</p>
-            <div className="flex items-center gap-2 mt-1">
-              <img src={`${ASSETS_Base}/icon_male.png`} alt="ชาย" className="w-6 h-6 object-contain" />
-              <span className="text-[#ffffff] text-[19px]">/</span>
-              <img src={`${ASSETS_Base}/icon_female.png`} alt="หญิง" className="w-6 h-6 object-contain" />
+          {abilityPopup ? (
+            <div className="absolute top-[18%] right-[7%] w-[20%] pointer-events-auto">
+              <span className="text-[20px] text-[#b3eafe]">คุณสมบัติพิเศษ</span>
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={() => setAbilityPopup(null)}
+                  className="cursor-pointer absolute top-[3%] right-[0%] w-[20%]"
+                >
+                  <img
+                    src={`${ASSETS_Base}/close_btn.png`}
+                    alt="ปิด"
+                    className="w-[100%] h-[100%] object-contain"
+                  />
+                </button>
+              </div>
+              
+              <div className="mt-5">
+                <p className="text-[22px] font-bold capitalize text-white mb-2">
+                  {abilityPopup.name.replace(/-/g, " ")}
+                </p>
+                <p className="text-[16px] text-white leading-relaxed">
+                  {abilityLoading ? "กำลังโหลด..." : abilityPopup.text}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* ส่วนสูง */}
+              <div className="absolute top-[17%] right-[5%] w-[21%] pointer-events-auto">
+                <p className="text-[19px] text-[#b3eafe]">ส่วนสูง</p>
+                <p className="text-[19px] text-[#ffffff]">{data.height / 10} m</p>
+              </div>
 
-          {/* คุณสมบัติพิเศษ */}
-          <div className="absolute top-[510px] right-[7%] w-[290px] pointer-events-auto">
-            <p className="text-[19px] text-[#b3eafe]">คุณสมบัติพิเศษ</p>
-            <div className="flex flex-col gap-1 mt-1">
-              {data.abilities
-                .filter((a) => !a.is_hidden)
-                .map((a) => (
-                  <p
-                    key={a.slot}
-                    className="text-[19px] text-[#ffffff] capitalize flex items-center gap-2"
-                  >
-                    {a.ability.name.replace(/-/g, " ")}
-                    <img
-                      src={`${ASSETS_Base}/icon_question.png`}
-                      alt="ข้อมูลเพิ่มเติม"
-                      title={a.ability.name.replace(/-/g, " ")}
-                      className="w-7 h-7 object-contain cursor-help"
-                    />
-                  </p>
-                ))}
-            </div>
-          </div>
+              {/* ชนิด */}
+              <div className="absolute top-[17%] right-[10%] w-[110px] flex flex-col pointer-events-auto">
+                <p className="text-[19px] text-[#b3eafe]">ชนิด</p>
+                <p className="text-[19px] text-[#ffffff] leading-tight">{genus}</p>
+              </div>
+
+              {/* น้ำหนัก */}
+              <div className="absolute top-[21%] right-[5%] w-[21%] pointer-events-auto">
+                <p className="text-[19px] text-[#b3eafe]">น้ำหนัก</p>
+                <p className="text-[19px] text-[#ffffff]">{data.weight / 10} kg</p>
+              </div>
+
+              {/* เพศ */}
+              <div className="absolute top-[21%] right-[5%] w-[13%] pointer-events-auto">
+                <p className="text-[19px] text-[#b3eafe]">เพศ</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <img src={`${ASSETS_Base}/icon_male.png`} alt="ชาย" className="w-6 h-6 object-contain" />
+                  <span className="text-[#ffffff] text-[19px]">/</span>
+                  <img src={`${ASSETS_Base}/icon_female.png`} alt="หญิง" className="w-6 h-6 object-contain" />
+                </div>
+              </div>
+
+              {/* คุณสมบัติพิเศษ */}
+              <div className="absolute top-[25%] right-[7%] w-[19%] pointer-events-auto">
+                <p className="text-[19px] text-[#b3eafe]">คุณสมบัติพิเศษ</p>
+                <div className="flex flex-col gap-1 mt-1">
+                  {data.abilities
+                    .filter((a) => !a.is_hidden)
+                    .map((a) => (
+                      <p
+                        key={a.slot}
+                        className="text-[19px] text-[#ffffff] capitalize flex items-center gap-2"
+                      >
+                        {a.ability.name.replace(/-/g, " ")}
+                        <button
+                          onClick={() => showAbilityInfo(a.ability.name, a.ability.url)}
+                          className="relative cursor-pointer group"
+                        >
+                        <img
+                          src={`${ASSETS_Base}/icon_question.png`}
+                          alt="ข้อมูลเพิ่มเติม"
+                          className="w-8 h-8 flex items-center object-center"
+                        />
+                        </button>
+                      </p>
+                    ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* เวอร์ชัน */}
           <div className="absolute top-[725px] left-[4%]">
@@ -527,7 +568,11 @@ function PokemonDetail() {
           {/* ร่าง */}
           {varieties.length > 0 && (
             <div className="absolute top-[1050px] w-[1400px] pointer-events-auto">
-              <PokemonForms varieties={varieties} evolutionChainUrl={evolutionChainUrl} />
+              <PokemonForms
+                varieties={varieties}
+                evolutionChainUrl={evolutionChainUrl}
+                speciesId={speciesId ?? data.id}
+              />
             </div>
           )}
 
@@ -538,7 +583,7 @@ function PokemonDetail() {
               <img
                 src={`${ASSETS_Base}/backbtn_bg_on.png`}
                 alt=""
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 opacity-0"
               />
               <span className="absolute inset-0 flex items-center justify-center text-[#b3eafe] cursor-pointer [text-shadow:0_0_5px_#b3eafe] hover:text-black transition-colors text-[19px]">
                 หน้าหลักโปเกเด็กซ์
