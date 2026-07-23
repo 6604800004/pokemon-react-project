@@ -21,7 +21,7 @@ const pokemonSpriteUrl = (id: number) =>
   `${CDN}/sprites/pokemon/other/official-artwork/${id}.png`;
 
 const pokemonSpriteFallbackUrl = (id: number) =>
-  `${OFFICIAL_URL}/${id}.png}`;
+  `${OFFICIAL_URL}/${id}.png`;
 
 // jsdelivr เป็น CDN สาธารณะ บางครั้งโหลดพลาด/ไม่เจอไฟล์ในแคช ลองสำรองที่ต้นทาง raw github ก่อนซ่อนรูปทิ้ง
 const handleSpriteError = (id: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {

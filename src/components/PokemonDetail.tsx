@@ -321,22 +321,33 @@ function PokemonDetail() {
           {/* ข้อมูลโปเกมอน: รูป, ID, ชื่อ */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-[560px]">
             <div className="relative w-[25%] h-[25%]">
-              <img
-                src={spriteUrl}
-                alt={data.name}
-                className="w-full h-full object-contain [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_3px_#ffffff)_drop-shadow(0_0_3px_#ffffff)] z-10"
-              />
-              <span className="absolute -top-[80px] left-1/2 -translate-x-1/2 text-[#b3eafe] text-[39px] z-20">
-                {(speciesId ?? data.id).toString().padStart(4, "0")}
-              </span>
-              <span
-                className="absolute -top-[40px] left-1/2 -translate-x-1/2 text-[#ffffff] text-[45px] font-bold z-40 whitespace-nowrap"
+              {/* รูปโปเกมอน */}
+              <div className="w-full h-full">
+                <img
+                  src={spriteUrl}
+                  alt={data.name}
+                  className="w-full h-full object-contain [filter:drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_1px_#ffffff)_drop-shadow(0_0_3px_#ffffff)_drop-shadow(0_0_3px_#ffffff)] z-10"
+                />
+              </div>
+
+              {/* หมายเลขโปเกมอน (ID) */}
+              <div className="absolute -top-[80px] left-1/2 -translate-x-1/2 z-20">
+                <span className="text-[#b3eafe] text-[39px]">
+                  {(speciesId ?? data.id).toString().padStart(4, "0")}
+                </span>
+              </div>
+
+              {/* ชื่อโปเกมอน */}
+              <div
+                className="absolute -top-[40px] left-1/2 -translate-x-1/2 z-40 whitespace-nowrap"
                 style={{
                   textShadow: "0 0 3px #000, 2px 2px 7px #9be1ff, -2px -2px 7px #9be1ff",
                 }}
               >
-                {data.name.replace(/-/g, " ").toUpperCase()}
-              </span>
+                <span className="text-[#ffffff] text-[45px] font-bold">
+                  {data.name.replace(/-/g, " ").toUpperCase()}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -406,19 +417,23 @@ function PokemonDetail() {
 
           {/* ประเภท, จุดอ่อน */}
           <div className="absolute top-[280px] left-[7%] w-[260px] pointer-events-auto">
-            <p className="text-[28px] text-white mb-3">ประเภท</p>
-            <div className="flex flex-col gap-3">
-              {data.types.map((t) => (
-                <span
-                  key={t.slot}
-                  onClick={() => nav(`/PokeDex?type=${t.type.name}`)}
-                  className={`type type--${t.type.name} capitalize w-full text-center cursor-pointer`}
-                >
-                  {t.type.name}
-                </span>
-              ))}
+            {/* ประเภท */}
+            <div>
+              <p className="text-[28px] text-white mb-3">ประเภท</p>
+              <div className="flex flex-col gap-3">
+                {data.types.map((t) => (
+                  <span
+                    key={t.slot}
+                    onClick={() => nav(`/PokeDex?type=${t.type.name}`)}
+                    className={`type type--${t.type.name} capitalize w-full text-center cursor-pointer`}
+                  >
+                    {t.type.name}
+                  </span>
+                ))}
+              </div>
             </div>
 
+            {/* จุดอ่อน */}
             {weaknessList.length > 0 && (
               <div className="mt-6">
                 <p className="text-[28px] text-white mb-3">จุดอ่อน</p>
@@ -439,7 +454,12 @@ function PokemonDetail() {
 
           {abilityPopup ? (
             <div className="absolute top-[18%] right-[7%] w-[20%] pointer-events-auto">
-              <span className="text-[20px] text-[#b3eafe]">คุณสมบัติพิเศษ</span>
+              {/* หัวข้อ */}
+              <div>
+                <span className="text-[20px] text-[#b3eafe]">คุณสมบัติพิเศษ</span>
+              </div>
+
+              {/* ปุ่มปิด */}
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={() => setAbilityPopup(null)}
@@ -452,7 +472,8 @@ function PokemonDetail() {
                   />
                 </button>
               </div>
-              
+
+              {/* เนื้อหา */}
               <div className="mt-5">
                 <p className="text-[22px] font-bold capitalize text-white mb-2">
                   {abilityPopup.name.replace(/-/g, " ")}

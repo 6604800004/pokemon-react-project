@@ -208,32 +208,41 @@ function PokemonList() {
             <div className="absolute bottom-[150px] left-[150px] right-10 z-10">
               <div className="search-panel absolute">
                 {/* วงกลม สุ่มรอบช่องค้นหา */}
-                <RandomPokemonBalls />
+                <div>
+                  <RandomPokemonBalls />
+                </div>
 
-                <p className="text-[#b3eafe] text-xl pb-4 pl-1 [filter:drop-shadow(0_0_5px_#fdfdfd)]">
-                  ค้นหาด้วยชื่อ หรือ หมายเลขโปเกเด็กซ์
-                </p>
-                <div className="flex rounded-full overflow-hidden bg-white shadow-lg [filter:drop-shadow(0_0_2px_#fdfdfd)]">
-                  <input
-                    type="text"
-                    value={inputText}
-                    className="search-input flex-1 min-w-0 py-2 pl-[50px] pr-[280px] text-[22px] border-none outline-none bg-white"
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === "Enter") handleSearch();
-                    }}
-                  />
-                  <button
-                    onClick={handleSearch}
-                    className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
-                  >
-                    <img
-                      src={`${ASSETS_Base}/icon_magnifying_glass.png`}
-                      alt="search"
-                      className="w-7 h-7 object-contain"
+                {/* คำอธิบายช่องค้นหา */}
+                <div>
+                  <p className="text-[#b3eafe] text-xl pb-4 pl-1 [filter:drop-shadow(0_0_5px_#fdfdfd)]">
+                    ค้นหาด้วยชื่อ หรือ หมายเลขโปเกเด็กซ์
+                  </p>
+                </div>
+
+                {/* ช่องค้นหา + ปุ่มค้นหา */}
+                <div>
+                  <div className="flex rounded-full overflow-hidden bg-white shadow-lg [filter:drop-shadow(0_0_2px_#fdfdfd)]">
+                    <input
+                      type="text"
+                      value={inputText}
+                      className="search-input flex-1 min-w-0 py-2 pl-[50px] pr-[280px] text-[22px] border-none outline-none bg-white"
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (e.key === "Enter") handleSearch();
+                      }}
                     />
-                  </button>
+                    <button
+                      onClick={handleSearch}
+                      className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
+                    >
+                      <img
+                        src={`${ASSETS_Base}/icon_magnifying_glass.png`}
+                        alt="search"
+                        className="w-7 h-7 object-contain"
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

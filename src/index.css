@@ -73,28 +73,6 @@ html {
   background-size: 36px 36px;
 }
 
-/* เอฟเฟกต์ปุ่มโปเกบอลตอนชี้เมาส์ */
-.pokeball-ball {
-  transition: transform 0.5s ease;
-  background: linear-gradient(to bottom,
-      #ee1c25 0%, #ee1c25 48%,
-      #1a1a1a 48%, #1a1a1a 52%,
-      #ffffff 52%, #ffffff 100%);
-}
-
-.pokeball-btn:hover .pokeball-ball {
-  transform: rotate(180deg);
-}
-
-.pokeball-center {
-  transition: transform 0.5s ease;
-}
-
-/* หมุนกลับด้านตรงข้ามกับ .pokeball-ball ให้ดูเหมือนวงในหมุนสวนวงนอก */
-.pokeball-btn:hover .pokeball-center {
-  transform: rotate(-180deg);
-}
-
 /* สีป้าย type */
 .type {
   @apply px-[35px] py-[4px] rounded-full text-white text-[16px];

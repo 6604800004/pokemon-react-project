@@ -15,14 +15,9 @@ function NotFound() {
 
         <button
           onClick={() => nav("/")}
-          className="pokeball-btn flex flex-col items-center gap-3 mx-auto bg-transparent border-0 cursor-pointer p-0"
+          className="mx-auto flex items-center justify-center bg-[#171717] text-white font-extrabold text-base rounded-full px-8 py-3 cursor-pointer border-0 transition-colors hover:bg-[#333]"
         >
-          <span className="pokeball-ball flex items-center justify-center w-24 h-24 rounded-full border-4 border-[#171717]">
-            <span className="pokeball-center w-8 h-8 rounded-full bg-white border-4 border-[#171717]" />
-          </span>
-          <span className="font-extrabold text-[#171717] text-base">
-            กลับไปหน้าแรก
-          </span>
+          กลับไปหน้าแรก
         </button>
       </div>
     </div>

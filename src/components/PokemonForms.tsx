@@ -166,9 +166,13 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
             hasOtherForms ? "top-[500px]" : "top-[110px]"
           }`}
         >
-            <span className="text-[160%] whitespace-nowrap">
-              วิวัฒนาการโปเกมอน</span>
-              <p className="text-[100%] text-[#ffffff] h-5" >ไม่มีวิวัฒนาการโปเกมอน</p>
+            <div>
+              <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
+            </div>
+
+            <div>
+              <p className="text-[100%] text-[#ffffff] h-5">ไม่มีวิวัฒนาการโปเกมอน</p>
+            </div>
           </div>
       )}
 
@@ -180,10 +184,15 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
             backgroundSize: "100% 100%",
           }}
         >
-          <p className="absolute left-[4%] text-[180%] text-[#b3eafe]">ร่าง</p>
-          <span className="absolute left-[6%] top-[50%] w-full text-left text-white text-[16px] font-['Noto_Sans']">
-            ไม่มีร่างอื่น
-          </span>
+          <div>
+            <p className="absolute left-[4%] text-[180%] text-[#b3eafe]">ร่าง</p>
+          </div>
+
+          <div>
+            <span className="absolute left-[6%] top-[50%] w-full text-left text-white text-[16px] font-['Noto_Sans']">
+              ไม่มีร่างอื่น
+            </span>
+          </div>
         </div>
       ) : (
         <div
