@@ -4,13 +4,18 @@ import { API_Base, ASSETS_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
+//ใช้ตอน Search
 const filterByKeyword = (list: Tdata[], keyword: string) => {
+  
   const key = keyword.toLowerCase().trim();
   if (!key) return list;
   return list.filter(
     (pokemon) =>
+      //พิมพ์เลข เพิ่ม 0 ข้างหน้า ให้ครบ 4 ตัว 
       pokemon.id.padStart(4, "0").includes(key) ||
+      //พิมพ์ชื่อ ปรับเป็นพิมพ์เล็ก
       pokemon.name.toLowerCase().includes(key) ||
+      //พิมพ์ type ปรับ type เป็นพิมพ์เล็ก
       pokemon.types.some((type) => type.toLowerCase().includes(key)),
   );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { CDN, RAW_URL, ASSETS_Base,OR_URL } from "../config";
+import { CDN, RAW_URL, ASSETS_Base, API_Base } from "../config";
 
 const FORM_BG_EMPTY = `${ASSETS_Base}/style0_bg.png`;
 const FORM_BG_CARD = `${ASSETS_Base}/style1_bg.png`;
@@ -77,7 +77,7 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
         }
         const evoResults = await Promise.all(
           evoNames.map((name) =>
-            fetch(`${OR_URL}/${name}`).then((res) => res.json()),
+            fetch(`${API_Base}/pokemon/${name}`).then((res) => res.json()),
           ),
         );
         if (!cancelled) setEvolutions(evoResults.map(mapForm));
@@ -103,16 +103,16 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
     <div className="w-full relative">
       {evolutions.length > 1 ? (
         <div
-          className= {`z-50 absolute right-0 h-[400px] flex flex-row items-center gap-[2%] text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-10 pr-[7%] rounded-s-full ${
+          className= {`z-50 absolute right-0 h-[400px] flex flex-row items-center gap-3 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-10 pr-[7%] rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[150px]"
           }`}
         >
-          <div className="flex items-center h-[100%] mr-8">
+          <div className="flex items-center h-[100%] mr-12">
             <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
           </div>
 
           {evolutions.map((f, index) => (
-            <div key={f.id} className="flex items-center gap-4 shrink-0">
+            <div key={f.id} className="flex items-center gap-3 shrink-0">
               {index > 0 && (
                 <img
                   src={`${ASSETS_Base}/arrow_down.png`}
@@ -138,11 +138,11 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
                   />
                 </div>
 
-                <span className="text-[18px] text-center mt-1">
+                <span className="text-[18px] text-center mt-1 font-['Noto_Sans',_Arial,_sans-serif]">
                   {(f.name === "raichu-alola" ? 26 : f.id).toString().padStart(4, "0")}
                 </span>
 
-                <span className="text-[20px] font-['Noto_Sans'] capitalize text-center flex items-center justify-center leading-tight">
+                <span className="text-[20px] font-['Noto_Sans',_Arial,_sans-serif] capitalize text-center flex items-center justify-center leading-tight">
                   {f.name.replace(/-/g, " ")}
                 </span>
 
@@ -150,7 +150,7 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
                   {f.types.map((t) => (
                     <span
                       key={t}
-                      className={`type type--${t} capitalize !text-center !text-[100%] `}
+                      className={`type type--${t} capitalize !text-center !text-[100%] !font-['Noto_Sans',_Arial,_sans-serif] `}
                     >
                       {t}
                     </span>

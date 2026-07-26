@@ -6,15 +6,11 @@ import { BuildPokemon, Status_Label, getPokemonId } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
 
-// --- ตัวช่วยแปลง URL id <-> (speciesId, formIndex) ---
-// รูปแบบ URL: "0003" = ฟอร์มธรรมดา (formIndex 0), "0003_1" = ฟอร์มพิเศษตัวที่ 1, "0003_2" = ตัวที่ 2 ...
-// formIndex อิงตามลำดับใน speciesJson.varieties (default มาก่อนเสมอ ตามด้วย mega/mega-x/mega-y/gmax ตามลำดับที่ API ส่งมา)
-
 type ParsedId = { speciesId: number; formIndex: number };
 
 const parseRouteId = (raw: string): ParsedId | null => {
   const match = raw.match(/^(\d+)(?:_(\d+))?$/);
-  if (!match) return null; // ไม่ตรง pattern เลข (เช่น เป็นชื่อฟอร์มพิเศษดิบๆ) ให้ caller จัดการต่อเอง
+  if (!match) return null;
   const speciesId = parseInt(match[1], 10);
   const formIndex = match[2] ? parseInt(match[2], 10) : 0;
   return { speciesId, formIndex };
@@ -75,14 +71,9 @@ function PokemonDetail() {
 
     const fetchData = async () => {
       try {
-        // --- แปลง id จาก URL ---
-        // รองรับ 2 แบบ: "0003" / "0003_1" (เลข+index ฟอร์ม) หรือ "venusaur-gmax" (ชื่อดิบ เผื่อลิงก์เก่า/ภายนอก)
         const parsed = parseRouteId(id);
-
-        let pokemonName: string; // ชื่อจริงที่จะใช้ fetch /pokemon/{name}
-
+        let pokemonName: string;
         if (parsed) {
-          // --- กรณี id เป็นเลข: ต้อง fetch species ก่อน เพื่อรู้ว่า formIndex นี้คือฟอร์มอะไร ---
           const speciesRes = await fetch(`${API_Base}/pokemon-species/${parsed.speciesId}`);
           if (!speciesRes.ok) {
             if (!cancelled) nav("/404", { replace: true });
@@ -99,11 +90,9 @@ function PokemonDetail() {
           }
           pokemonName = targetVariety.pokemon.name;
         } else {
-          // --- กรณี id เป็นชื่อดิบ (เช่น ลิงก์เก่า venusaur-gmax) ---
           pokemonName = id;
         }
 
-        // --- pokemon entry ---
         const res = await fetch(`${API_Base}/pokemon/${pokemonName}`);
         if (!res.ok) {
           if (!cancelled) nav("/404", { replace: true });
@@ -113,7 +102,6 @@ function PokemonDetail() {
         if (cancelled) return;
         setData(json);
 
-        // --- species (ใช้หา speciesId, genus, varieties, flavor text) ---
         const speciesRes = await fetch(json.species.url);
         const speciesJson = await speciesRes.json();
         if (cancelled) return;
@@ -129,15 +117,12 @@ function PokemonDetail() {
         );
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
 
-        // ฟอร์มทั้งหมดของ species นี้ (default + mega/mega-x/mega-y/gmax/alola)
-        // ลำดับนี้คือลำดับที่ใช้กำหนด formIndex ใน URL ด้วย (default = index 0 เสมอ)
         const speciesVarieties: Variety[] = (speciesJson.varieties ?? []).filter((v: Variety) =>
           BuildPokemon(v.pokemon.name, v.is_default),
         );
         setVarieties(speciesVarieties);
         setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
-        // --- โปเกมอนก่อนหน้า / ถัดไป ---
         const currentIndex = speciesVarieties.findIndex(
           (v) => v.pokemon.name === json.name,
         );
@@ -150,7 +135,6 @@ function PokemonDetail() {
               direction === "next" ? currentIndex + 1 : currentIndex - 1;
             const neighborVariety = speciesVarieties[neighborIndex];
             if (neighborVariety) {
-              // ยังอยู่ใน species เดียวกัน ไปฟอร์มถัดไป/ก่อนหน้าในกลุ่ม
               try {
                 const r = await fetch(neighborVariety.pokemon.url);
                 if (r.ok) {
@@ -162,18 +146,15 @@ function PokemonDetail() {
                   };
                 }
               } catch {
-                /* fallthrough ไป species ถัดไป */
               }
             }
           }
 
-          // หมดฟอร์มของ species นี้แล้ว ให้ข้ามไป species ถัดไป/ก่อนหน้า
           const neighborSpeciesId = direction === "next" ? sId + 1 : sId - 1;
           if (neighborSpeciesId < 1) return null;
 
           try {
             if (direction === "next") {
-              // next: ไปฟอร์ม default (formIndex 0) ของ species ถัดไปเสมอ
               const r = await fetch(`${API_Base}/pokemon/${neighborSpeciesId}`);
               if (!r.ok) return null;
               const d = await r.json();
@@ -184,7 +165,6 @@ function PokemonDetail() {
               };
             }
 
-            // prev: ต้องดู varieties ของ species ก่อนหน้า แล้วไปฟอร์ม "สุดท้าย" (สมมาตรกับ next)
             const neighborSpeciesRes = await fetch(
               `${API_Base}/pokemon-species/${neighborSpeciesId}`,
             );
@@ -219,7 +199,6 @@ function PokemonDetail() {
           if (!cancelled) setNextPokemon(res);
         });
 
-        // --- flavor text ---
         const thEntry = speciesJson.flavor_text_entries.find(
           (e: { language: { name: string } }) => e.language.name === "th",
         );
@@ -234,7 +213,6 @@ function PokemonDetail() {
             .trim(),
         );
 
-        // --- damage relations (จุดอ่อน) ---
         const typeResults: TypeDamageRelations[] = await Promise.all(
           json.types.map((t) => fetch(t.type.url).then((res) => res.json())),
         );
