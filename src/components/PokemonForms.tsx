@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { CDN, RAW_URL, ASSETS_Base, API_Base } from "../config";
+import { CDN, RAW_URL, API_Base } from "../config";
 
-const FORM_BG_EMPTY = `${ASSETS_Base}/style0_bg.png`;
-const FORM_BG_CARD = `${ASSETS_Base}/style1_bg.png`;
-const FORM_BG_POKEBALL = `${ASSETS_Base}/style_pokemon_bg.png`;
-const FORM_BG_EVO = `${ASSETS_Base}/evolutions_pokemon_bg.png`;
+const FORM_BG_EMPTY = "/src/assets/img/style0_bg.png";
+const FORM_BG_CARD = "/src/assets/img/style1_bg.png";
+const FORM_BG_POKEBALL = "/src/assets/img/style_pokemon_bg.png";
+const FORM_BG_EVO = "/src/assets/img/evolutions_pokemon_bg.png";
 
 const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
 
@@ -31,7 +31,8 @@ const mapForm = (p: any): FormData => ({
   id: p.id,
   name: p.name,
   sprite: toJsdelivr(
-    p.sprites.other["official-artwork"].front_default ?? p.sprites.front_default,
+    p.sprites.other["official-artwork"].front_default ??
+      p.sprites.front_default,
   ),
   types: p.types.map((t: { type: { name: string } }) => t.type.name),
 });
@@ -42,7 +43,11 @@ const flattenChain = (node: any, names: string[] = []): string[] => {
   return names;
 };
 
-function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsProps) {
+function PokemonForms({
+  varieties,
+  evolutionChainUrl,
+  speciesId,
+}: PokemonFormsProps) {
   const nav = useNavigate();
   const [forms, setForms] = useState<FormData[]>([]);
   const [evolutions, setEvolutions] = useState<FormData[]>([]);
@@ -69,7 +74,9 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
         return;
       }
       try {
-        const chainJson = await fetch(evolutionChainUrl).then((res) => res.json());
+        const chainJson = await fetch(evolutionChainUrl).then((res) =>
+          res.json(),
+        );
         const evoNames = flattenChain(chainJson.chain);
         const raichuIndex = evoNames.indexOf("raichu");
         if (raichuIndex !== -1) {
@@ -103,19 +110,21 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
     <div className="w-full relative">
       {evolutions.length > 1 ? (
         <div
-          className= {`z-50 absolute right-0 h-[400px] flex flex-row items-center gap-3 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-10 pr-[7%] rounded-s-full ${
+          className={`z-50 absolute right-0 h-[400px] flex flex-row items-center gap-3 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-10 pr-[7%] rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[150px]"
           }`}
         >
           <div className="flex items-center h-[100%] mr-12">
-            <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
+            <span className="text-[160%] whitespace-nowrap">
+              วิวัฒนาการโปเกมอน
+            </span>
           </div>
 
           {evolutions.map((f, index) => (
             <div key={f.id} className="flex items-center gap-3 shrink-0">
               {index > 0 && (
                 <img
-                  src={`${ASSETS_Base}/arrow_down.png`}
+                  src="\src\assets\img\arrow_down.png"
                   alt=""
                   className="w-7 h-7 object-contain rotate-[-90deg] shrink-0"
                   aria-hidden="true"
@@ -139,7 +148,9 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
                 </div>
 
                 <span className="text-[18px] text-center mt-1 font-['Noto_Sans',_Arial,_sans-serif]">
-                  {(f.name === "raichu-alola" ? 26 : f.id).toString().padStart(4, "0")}
+                  {(f.name === "raichu-alola" ? 26 : f.id)
+                    .toString()
+                    .padStart(4, "0")}
                 </span>
 
                 <span className="text-[20px] font-['Noto_Sans',_Arial,_sans-serif] capitalize text-center flex items-center justify-center leading-tight">
@@ -161,19 +172,23 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
           ))}
         </div>
       ) : (
-         <div
-          className={`z-50 absolute right-0 flex flex-row items-center text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
+        <div
+          className={`z-50 absolute right-0 flex flex-row items-center gap-3 text-[#b3eafe] border-2 w-fit border-[#466e9b] bg-[#0a141e] py-6 pl-8 pr-10 rounded-s-full ${
             hasOtherForms ? "top-[500px]" : "top-[110px]"
           }`}
         >
-            <div>
-              <span className="text-[160%] whitespace-nowrap">วิวัฒนาการโปเกมอน</span>
-            </div>
-
-            <div>
-              <p className="text-[100%] text-[#ffffff] h-5">ไม่มีวิวัฒนาการโปเกมอน</p>
-            </div>
+          <div>
+            <span className="text-[160%] whitespace-nowrap">
+              วิวัฒนาการโปเกมอน
+            </span>
           </div>
+
+          <div>
+            <p className="text-[100%] text-[#ffffff] h-5">
+              ไม่มีวิวัฒนาการโปเกมอน
+            </p>
+          </div>
+        </div>
       )}
 
       {!hasOtherForms ? (
@@ -185,7 +200,9 @@ function PokemonForms({ varieties, evolutionChainUrl, speciesId }: PokemonFormsP
           }}
         >
           <div>
-            <p className="absolute left-[4%] text-[180%] text-[#b3eafe]">ร่าง</p>
+            <p className="absolute left-[4%] text-[180%] text-[#b3eafe]">
+              ร่าง
+            </p>
           </div>
 
           <div>

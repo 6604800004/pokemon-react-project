@@ -1,38 +1,34 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { CDN, ASSETS_Base, OFFICIAL_URL} from "../config";
+import { CDN, OFFICIAL_URL } from "../config";
 
+// id pokemon ที่ต้องการให้ขึ้นตอน random
 const RANDOM_POKEMON_IDS = [
-  1, 4, 6, 7, 9, 25, 37, 38, 39, 52, 54, 63, 74, 92, 94, 95, 113, 129, 130,
-  131, 133, 143, 149, 150, 172, 175, 196, 200, 201, 202, 203, 204, 205, 206,
-  207, 208, 210, 211, 212, 213, 214, 215, 217, 248, 300, 305, 306, 307, 384,
-  445, 448, 658, 700, 778, 812, 888,
+  1, 4, 6, 7, 9, 25, 37, 38, 39, 52, 54, 63, 74, 92, 94, 95, 113, 129, 130, 131,
+  133, 143, 149, 150, 172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207,
+  208, 210, 211, 212, 213, 214, 215, 217, 248, 300, 305, 306, 307, 384, 445,
+  448, 658, 700, 778, 812, 888,
 ];
 
 // ตั้งเวลาการสุ่ม
 const RANDOM_DELAY_SECONDS = 20;
 const RANDOM_DELAY_MS = RANDOM_DELAY_SECONDS * 1000;
 
-const BG_IMG_URL = `${ASSETS_Base}/random_center_bg.png`;
+// ดึงรูปจาก ID
+const pokemonSpriteUrl = (id: number) => `${OFFICIAL_URL}/${id}.png`;
+const pokemonSpriteFallbackUrl = (id: number) => `${CDN}/${id}.png`;
 
-const RING_IMG_URL = `${ASSETS_Base}/random_bg.png`;
-
-const pokemonSpriteUrl = (id: number) =>
-  `${CDN}/sprites/pokemon/other/official-artwork/${id}.png`;
-
-const pokemonSpriteFallbackUrl = (id: number) =>
-  `${OFFICIAL_URL}/${id}.png`;
-
-// jsdelivr เป็น CDN สาธารณะ บางครั้งโหลดพลาด/ไม่เจอไฟล์ในแคช ลองสำรองที่ต้นทาง raw github ก่อนซ่อนรูปทิ้ง
-const handleSpriteError = (id: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
-  const img = e.currentTarget;
-  const fallback = pokemonSpriteFallbackUrl(id);
-  if (img.src !== fallback) {
-    img.src = fallback;
-  } else {
-    img.style.opacity = "0";
-  }
-};
+// jsdelivr เป็น CDN สาธารณะ บางครั้งโหลดพลาด/ไม่เจอไฟล์ในแคช สำรองที่ต้นทาง raw github ก่อนซ่อนรูปทิ้ง
+const handleSpriteError =
+  (id: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const fallback = pokemonSpriteFallbackUrl(id);
+    if (img.src !== fallback) {
+      img.src = fallback;
+    } else {
+      img.style.opacity = "0";
+    }
+  };
 
 const pickUniqueIds = (n: number): number[] => {
   const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
@@ -60,7 +56,7 @@ function RandomPokemonBalls() {
       {/* วงกลาง */}
       <div className="absolute inset-0 flex items-center justify-center -translate-y-[180px] -translate-x-[-210px] pointer-events-auto">
         <img
-          src={BG_IMG_URL}
+          src="/src/assets/img/random_center_bg.png"
           className="h-[300px] w-[300px] object-contain select-none pointer-events-none"
           aria-hidden="true"
         />
@@ -77,7 +73,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[110px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -95,7 +91,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[325px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -113,7 +109,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[215px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -131,7 +127,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[215px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -149,7 +145,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[4px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -167,7 +163,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[4px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -185,7 +181,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[-420px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -203,7 +199,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[110px] -translate-x-[-630px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -221,7 +217,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-420px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -239,7 +235,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[270px] -translate-x-[-630px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -257,7 +253,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[-525px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />
@@ -275,7 +271,7 @@ function RandomPokemonBalls() {
       <div className="relative pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center -translate-y-[190px] -translate-x-[-745px] pointer-events-auto">
           <img
-            src={RING_IMG_URL}
+            src="/src/assets/img/random_center_bg.png"
             className="h-[120px] w-[120px] object-contain select-none pointer-events-none"
             aria-hidden="true"
           />

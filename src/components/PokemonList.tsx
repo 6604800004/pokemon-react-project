@@ -1,17 +1,16 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { API_Base, ASSETS_Base } from "../config";
+import { API_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
 //ใช้ตอน Search
 const filterByKeyword = (list: Tdata[], keyword: string) => {
-  
   const key = keyword.toLowerCase().trim();
   if (!key) return list;
   return list.filter(
     (pokemon) =>
-      //พิมพ์เลข เพิ่ม 0 ข้างหน้า ให้ครบ 4 ตัว 
+      //พิมพ์เลข เพิ่ม 0 ข้างหน้า ให้ครบ 4 ตัว
       pokemon.id.padStart(4, "0").includes(key) ||
       //พิมพ์ชื่อ ปรับเป็นพิมพ์เล็ก
       pokemon.name.toLowerCase().includes(key) ||
@@ -62,7 +61,8 @@ const fetchBatch = async (offset: number) => {
           url: e.url,
           id: getPokemonId(e.speciesUrl),
           types: data.types.map((t: { type: { name: string } }) => t.type.name),
-          sprite: data.sprites?.other?.["official-artwork"]?.front_default ?? "",
+          sprite:
+            data.sprites?.other?.["official-artwork"]?.front_default ?? "",
         })),
     ),
   );
@@ -163,7 +163,10 @@ function PokemonList() {
     if (hasFetched.current) return;
     hasFetched.current = true;
     fetchSpecies(0).then(() => {
-      if (initialType && filterByKeyword(dataRef.current, initialType).length < 16) {
+      if (
+        initialType &&
+        filterByKeyword(dataRef.current, initialType).length < 16
+      ) {
         fetchUntilEnough(initialType, 16);
       }
     });
@@ -191,20 +194,20 @@ function PokemonList() {
             </div>
 
             <img
-              src={`${ASSETS_Base}/list_top_bg.jpg`}
+              src="src\assets\img\list_top_bg.jpg"
               alt="Pokedex banner"
               className="w-full block"
             />
 
             <img
-              src={`${ASSETS_Base}/pokedex_bg.png`}
+              src="src\assets\img\pokedex_bg.png"
               className="absolute inset-0 w-auto h-auto object-cover object-center pointer-events-none select-none z-20"
               aria-hidden="true"
             />
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-7">
               <img
-                src={`${ASSETS_Base}/pokemon_list_bg.png`}
+                src="src\assets\img\pokemon_list_bg.png"
                 className="w-[1350px] h-[550px] object-cover object-center select-none animate-spin [animation-duration:3s]"
                 aria-hidden="true"
               />
@@ -242,7 +245,7 @@ function PokemonList() {
                       className="flex items-center justify-center w-[100px] bg-[#b3eafe] border-none cursor-pointer shrink-0 transition-colors"
                     >
                       <img
-                        src={`${ASSETS_Base}/icon_magnifying_glass.png`}
+                        src="src\assets\img\icon_magnifying_glass.png"
                         alt="search"
                         className="w-7 h-7 object-contain"
                       />
@@ -259,9 +262,7 @@ function PokemonList() {
             {visibleData.map((pokemon) => (
               <div
                 key={pokemon.name}
-                onClick={() =>
-                  nav(`/PokeDex/${pokemon.name}`)
-                }
+                onClick={() => nav(`/PokeDex/${pokemon.name}`)}
                 className="pokemon-card-bg flex flex-col items-center cursor-pointer overflow-hidden relative rounded-lg"
                 style={{ aspectRatio: "2 / 3" }}
               >

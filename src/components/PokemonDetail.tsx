@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { API_Base, CDN, ASSETS_Base, RAW_URL } from "../config";
-import { type PokemonDetailData, type TypeDamageRelations, type Variety } from "../data/pokemonData";
+import { API_Base, CDN, RAW_URL } from "../config";
+import {
+  type PokemonDetailData,
+  type TypeDamageRelations,
+  type Variety,
+} from "../data/pokemonData";
 import { BuildPokemon, Status_Label, getPokemonId } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
@@ -31,9 +35,20 @@ function PokemonDetail() {
   const [weaknesses, setWeaknesses] = useState<Record<string, number>>({});
   const [varieties, setVarieties] = useState<Variety[]>([]);
   const [evolutionChainUrl, setEvolutionChainUrl] = useState("");
-  const [prevPokemon, setPrevPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
-  const [nextPokemon, setNextPokemon] = useState<{ id: number; name: string; nav: string } | null>(null);
-  const [abilityPopup, setAbilityPopup] = useState<{ name: string; text: string } | null>(null);
+  const [prevPokemon, setPrevPokemon] = useState<{
+    id: number;
+    name: string;
+    nav: string;
+  } | null>(null);
+  const [nextPokemon, setNextPokemon] = useState<{
+    id: number;
+    name: string;
+    nav: string;
+  } | null>(null);
+  const [abilityPopup, setAbilityPopup] = useState<{
+    name: string;
+    text: string;
+  } | null>(null);
   const [abilityLoading, setAbilityLoading] = useState(false);
 
   const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
@@ -50,7 +65,11 @@ function PokemonDetail() {
       const enEntry = json.effect_entries?.find(
         (e: { language: { name: string } }) => e.language.name === "en",
       );
-      const text = thEntry?.effect ?? enEntry?.effect ?? enEntry?.short_effect ?? "ไม่มีข้อมูล";
+      const text =
+        thEntry?.effect ??
+        enEntry?.effect ??
+        enEntry?.short_effect ??
+        "ไม่มีข้อมูล";
       setAbilityPopup({ name, text });
     } catch {
       setAbilityPopup({ name, text: "โหลดข้อมูลไม่สำเร็จ" });
@@ -74,15 +93,17 @@ function PokemonDetail() {
         const parsed = parseRouteId(id);
         let pokemonName: string;
         if (parsed) {
-          const speciesRes = await fetch(`${API_Base}/pokemon-species/${parsed.speciesId}`);
+          const speciesRes = await fetch(
+            `${API_Base}/pokemon-species/${parsed.speciesId}`,
+          );
           if (!speciesRes.ok) {
             if (!cancelled) nav("/404", { replace: true });
             return;
           }
           const speciesJsonPeek = await speciesRes.json();
-          const varietiesPeek: Variety[] = (speciesJsonPeek.varieties ?? []).filter(
-            (v: Variety) => BuildPokemon(v.pokemon.name, v.is_default),
-          );
+          const varietiesPeek: Variety[] = (
+            speciesJsonPeek.varieties ?? []
+          ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default));
           const targetVariety = varietiesPeek[parsed.formIndex];
           if (!targetVariety) {
             if (!cancelled) nav("/404", { replace: true });
@@ -117,9 +138,9 @@ function PokemonDetail() {
         );
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
 
-        const speciesVarieties: Variety[] = (speciesJson.varieties ?? []).filter((v: Variety) =>
-          BuildPokemon(v.pokemon.name, v.is_default),
-        );
+        const speciesVarieties: Variety[] = (
+          speciesJson.varieties ?? []
+        ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default));
         setVarieties(speciesVarieties);
         setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
@@ -145,8 +166,7 @@ function PokemonDetail() {
                     nav: buildRouteId(sId, neighborIndex),
                   };
                 }
-              } catch {
-              }
+              } catch {}
             }
           }
 
@@ -171,8 +191,10 @@ function PokemonDetail() {
             if (!neighborSpeciesRes.ok) return null;
             const neighborSpeciesJson = await neighborSpeciesRes.json();
 
-            const neighborVarieties: Variety[] = (neighborSpeciesJson.varieties ?? []).filter(
-              (v: Variety) => BuildPokemon(v.pokemon.name, v.is_default),
+            const neighborVarieties: Variety[] = (
+              neighborSpeciesJson.varieties ?? []
+            ).filter((v: Variety) =>
+              BuildPokemon(v.pokemon.name, v.is_default),
             );
 
             const lastIndex = neighborVarieties.length - 1;
@@ -260,7 +282,8 @@ function PokemonDetail() {
     .sort((a, b) => b[1] - a[1]);
 
   const spriteUrl = toJsdelivr(
-    data.sprites.other["official-artwork"].front_default ?? data.sprites.front_default,
+    data.sprites.other["official-artwork"].front_default ??
+      data.sprites.front_default,
   );
 
   return (
@@ -277,26 +300,26 @@ function PokemonDetail() {
             </div>
 
             <img
-              src={`${ASSETS_Base}/main_bg_v15.jpg`}
+              src="\src\assets\img\main_bg_v15.jpg"
               alt="Pokedex banner"
               className="w-full block"
             />
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-[560px]">
               <img
-                src={`${ASSETS_Base}/pokemon_bg.png`}
+                src="\src\assets\img\pokemon_bg.png"
                 className="h-auto object-cover object-center select-none animate-spin [animation-duration:3s]"
                 aria-hidden="true"
               />
               <img
-                src={`${ASSETS_Base}/pokemon_circle_bg.png`}
+                src="\src\assets\img\pokemon_circle_bg.png"
                 className="absolute h-[auto] object-cover object-center select-none"
                 aria-hidden="true"
               />
             </div>
           </div>
 
-          {/* ข้อมูลโปเกมอน: รูป, ID, ชื่อ */}
+          {/* ข้อมูลโปเกมอน : รูป, id, ชื่อ */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none -translate-y-[560px]">
             <div className="relative w-[25%] h-[25%]">
               {/* รูปโปเกมอน */}
@@ -308,8 +331,8 @@ function PokemonDetail() {
                 />
               </div>
 
-              {/* หมายเลขโปเกมอน (ID) */}
-              <div className="absolute -top-[80px] left-1/2 -translate-x-1/2 z-20">
+              {/* id */}
+              <div className="absolute -top-[18%] left-1/2 -translate-x-1/2 z-20">
                 <span className="text-[#b3eafe] text-[39px]">
                   {(speciesId ?? data.id).toString().padStart(4, "0")}
                 </span>
@@ -317,12 +340,13 @@ function PokemonDetail() {
 
               {/* ชื่อโปเกมอน */}
               <div
-                className="absolute -top-[40px] left-1/2 -translate-x-1/2 z-40 whitespace-nowrap"
+                className="absolute -top-[9%] left-1/2 -translate-x-1/2 z-40 whitespace-nowrap"
                 style={{
-                  textShadow: "0 0 3px #000, 2px 2px 7px #9be1ff, -2px -2px 7px #9be1ff",
+                  textShadow:
+                    "0 0 3px #000, 2px 2px 7px #9be1ff, -2px -2px 7px #9be1ff",
                 }}
               >
-                <span className="text-[#ffffff] text-[45px] font-bold">
+                <span className="text-[#ffffff] text-[40px] font-bold">
                   {data.name.replace(/-/g, " ").toUpperCase()}
                 </span>
               </div>
@@ -333,7 +357,7 @@ function PokemonDetail() {
           {prevPokemon ? (
             <div className="absolute top-[140px] left-0 z-30">
               <img
-                src={`${ASSETS_Base}/arrow_pc_left.png`}
+                src="\src\assets\img\arrow_pc_left.png"
                 alt=""
                 className="w-[400px] object-contain"
               />
@@ -342,9 +366,12 @@ function PokemonDetail() {
                 className="absolute top-3.5 left-11 pointer-events-auto cursor-pointer group"
               >
                 <div className="relative w-[64px] h-[64px]">
-                  <img src={`${ASSETS_Base}/arrow_left_btn.png`} alt="โปเกมอนก่อนหน้า" />
                   <img
-                    src={`${ASSETS_Base}/arrow_left_btn_on.png`}
+                    src="\src\assets\img\arrow_left_btn.png"
+                    alt="โปเกมอนก่อนหน้า"
+                  />
+                  <img
+                    src="\src\assets\img\arrow_left_btn_on.png"
                     alt=""
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   />
@@ -364,7 +391,7 @@ function PokemonDetail() {
           {/* ปุ่มเปลี่ยนโปเกมอน: ขวา */}
           <div className="absolute top-[140px] right-0 z-30">
             <img
-              src={`${ASSETS_Base}/arrow_pc_right.png`}
+              src="\src\assets\img\arrow_pc_right.png"
               alt=""
               className="w-[380px] object-contain"
             />
@@ -373,9 +400,12 @@ function PokemonDetail() {
               className="absolute top-3.5 right-11 pointer-events-auto cursor-pointer group"
             >
               <div className="relative w-[64px] h-[64px]">
-                <img src={`${ASSETS_Base}/arrow_right_btn.png`} alt="โปเกมอนถัดไป" />
                 <img
-                  src={`${ASSETS_Base}/arrow_right_btn_on.png`}
+                  src="\src\assets\img\arrow_right_btn.png"
+                  alt="โปเกมอนถัดไป"
+                />
+                <img
+                  src="\src\assets\img\arrow_right_btn_on.png"
                   alt=""
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 />
@@ -431,10 +461,12 @@ function PokemonDetail() {
           </div>
 
           {abilityPopup ? (
-            <div className="absolute top-[18%] right-[7%] w-[20%] pointer-events-auto">
+            <div className="absolute top-[17.5%] right-[8%] w-[20%] pointer-events-auto">
               {/* หัวข้อ */}
               <div>
-                <span className="text-[20px] text-[#b3eafe]">คุณสมบัติพิเศษ</span>
+                <span className="text-[20px] text-[#b3eafe]">
+                  คุณสมบัติพิเศษ
+                </span>
               </div>
 
               {/* ปุ่มปิด */}
@@ -444,7 +476,7 @@ function PokemonDetail() {
                   className="cursor-pointer absolute top-[3%] right-[0%] w-[20%]"
                 >
                   <img
-                    src={`${ASSETS_Base}/close_btn.png`}
+                    src="\src\assets\img\close_btn.png"
                     alt="ปิด"
                     className="w-[100%] h-[100%] object-contain"
                   />
@@ -466,28 +498,42 @@ function PokemonDetail() {
               {/* ส่วนสูง */}
               <div className="absolute top-[17%] right-[5%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">ส่วนสูง</p>
-                <p className="text-[19px] text-[#ffffff]">{data.height / 10} m</p>
+                <p className="text-[19px] text-[#ffffff]">
+                  {data.height / 10} m
+                </p>
               </div>
 
               {/* ชนิด */}
               <div className="absolute top-[17%] right-[10%] w-[110px] flex flex-col pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">ชนิด</p>
-                <p className="text-[19px] text-[#ffffff] leading-tight">{genus}</p>
+                <p className="text-[19px] text-[#ffffff] leading-tight">
+                  {genus}
+                </p>
               </div>
 
               {/* น้ำหนัก */}
               <div className="absolute top-[21%] right-[5%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">น้ำหนัก</p>
-                <p className="text-[19px] text-[#ffffff]">{data.weight / 10} kg</p>
+                <p className="text-[19px] text-[#ffffff]">
+                  {data.weight / 10} kg
+                </p>
               </div>
 
               {/* เพศ */}
               <div className="absolute top-[21%] right-[5%] w-[13%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">เพศ</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <img src={`${ASSETS_Base}/icon_male.png`} alt="ชาย" className="w-6 h-6 object-contain" />
+                  <img
+                    src="\src\assets\img\icon_male.png"
+                    alt="ชาย"
+                    className="w-6 h-6 object-contain"
+                  />
                   <span className="text-[#ffffff] text-[19px]">/</span>
-                  <img src={`${ASSETS_Base}/icon_female.png`} alt="หญิง" className="w-6 h-6 object-contain" />
+                  <img
+                    src="\src\assets\img\icon_female.png"
+                    alt="หญิง"
+                    className="w-6 h-6 object-contain"
+                  />
                 </div>
               </div>
 
@@ -504,14 +550,16 @@ function PokemonDetail() {
                       >
                         {a.ability.name.replace(/-/g, " ")}
                         <button
-                          onClick={() => showAbilityInfo(a.ability.name, a.ability.url)}
+                          onClick={() =>
+                            showAbilityInfo(a.ability.name, a.ability.url)
+                          }
                           className="relative cursor-pointer group"
                         >
-                        <img
-                          src={`${ASSETS_Base}/icon_question.png`}
-                          alt="ข้อมูลเพิ่มเติม"
-                          className="w-8 h-8 flex items-center object-center"
-                        />
+                          <img
+                            src="\src\assets\img\icon_question.png"
+                            alt="ข้อมูลเพิ่มเติม"
+                            className="w-8 h-8 flex items-center object-center"
+                          />
                         </button>
                       </p>
                     ))}
@@ -521,26 +569,26 @@ function PokemonDetail() {
           )}
 
           {/* เวอร์ชัน */}
-          <div className="absolute top-[725px] left-[4%]">
+          <div className="absolute top-[34.8%] left-[4%]">
             <div className="flex items-center gap-4">
               <p className="text-[28px] text-[#b3eafe]">เวอร์ชัน</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center">
                 <img
-                  src={`${ASSETS_Base}/icon_ball_on.png`}
+                  src="\src\assets\img\icon_ball_on.png"
                   alt="Brilliant Diamond & Shining Pearl"
                   className="w-[33px] h-[33px] object-contain"
                 />
                 <img
-                  src={`${ASSETS_Base}/icon_ball.png`}
+                  src="\src\assets\img\icon_ball.png"
                   alt="Sword & Shield"
-                  className="w-[33px] h-[33px] object-contain"
+                  className="w-[35px] h-[35px] object-contain"
                 />
               </div>
             </div>
           </div>
 
           {flavorText && (
-            <div className="absolute top-[770px] left-[4%] w-[400px] pointer-events-auto">
+            <div className="absolute top-[37%] left-[4%] w-[25%] pointer-events-auto">
               <p className="text-[19px] text-[#ffffff] leading-relaxed whitespace-normal break-words">
                 {flavorText}
               </p>
@@ -548,11 +596,10 @@ function PokemonDetail() {
           )}
 
           {/* ค่าพลัง */}
-          <div className="absolute top-[725px] right-[20%] pointer-events-auto">
+          <div className="absolute top-[34.8%] right-[20%] pointer-events-auto">
             <p className="text-[28px] text-[#b3eafe] ">ค่าพลัง</p>
           </div>
-
-          <div className="absolute top-[800px] right-[2.5%] w-[600px] pointer-events-auto">
+          <div className="absolute top-[39%] right-[2.5%] w-[50%] pointer-events-auto">
             <div className="grid grid-cols-6 gap-4">
               {data.stats.map((s) => (
                 <StatBar
@@ -566,7 +613,7 @@ function PokemonDetail() {
 
           {/* ร่าง */}
           {varieties.length > 0 && (
-            <div className="absolute top-[1050px] w-[1400px] pointer-events-auto">
+            <div className="absolute top-[50%] w-[1400px] pointer-events-auto">
               <PokemonForms
                 varieties={varieties}
                 evolutionChainUrl={evolutionChainUrl}
@@ -577,10 +624,16 @@ function PokemonDetail() {
 
           {/* กลับไปหน้าหลักโปเกเด็กซ์ */}
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-center w-full max-w-[600px] h-20 mx-auto my-5">
-            <button onClick={() => nav("/")} className="relative cursor-pointer group">
-              <img src={`${ASSETS_Base}/backbtn_bg.png`} alt="หน้าหลักโปเกเด็กซ์" />
+            <button
+              onClick={() => nav("/")}
+              className="relative cursor-pointer group"
+            >
               <img
-                src={`${ASSETS_Base}/backbtn_bg_on.png`}
+                src="\src\assets\img\backbtn_bg.png"
+                alt="หน้าหลักโปเกเด็กซ์"
+              />
+              <img
+                src="\src\assets\img\backbtn_bg_on.png"
                 alt=""
                 className="absolute inset-0 opacity-0"
               />
@@ -589,7 +642,6 @@ function PokemonDetail() {
               </span>
             </button>
           </div>
-
         </div>
       </div>
     </>
