@@ -2,17 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { CDN, OFFICIAL_URL } from "../config";
 
-// id pokemon ที่ต้องการให้ขึ้นตอน random
-const RANDOM_POKEMON_IDS = [
+// List Id Pokemon ที่ต้องการให้ขึ้นตอน random
+const RandomPokemonId = [
   1, 4, 6, 7, 9, 25, 37, 38, 39, 52, 54, 63, 74, 92, 94, 95, 113, 129, 130, 131,
   133, 143, 149, 150, 172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207,
   208, 210, 211, 212, 213, 214, 215, 217, 248, 300, 305, 306, 307, 384, 445,
-  448, 658, 700, 778, 812, 888,
+  448, 658, 700, 778, 792, 812, 888,
 ];
 
-// ตั้งเวลาการสุ่ม
-const RANDOM_DELAY_SECONDS = 20;
-const RANDOM_DELAY_MS = RANDOM_DELAY_SECONDS * 1000;
+// เอา Id จาก RandomPokemonId
+const pickUniqueIds = (n: number): number[] => {
+  const shuffled = [...RandomPokemonId].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+};
+
+// ตั้งเวลาการหน่วง
+const RandomDelaySec = 20; //วินาที
+const RandomDelayMs = RandomDelaySec * 1000; // เปลี่ยนจาก Ms > Sec
 
 // ดึงรูปจาก ID
 const pokemonSpriteUrl = (id: number) => `${OFFICIAL_URL}/${id}.png`;
@@ -30,11 +36,6 @@ const handleSpriteError =
     }
   };
 
-const pickUniqueIds = (n: number): number[] => {
-  const shuffled = [...RANDOM_POKEMON_IDS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, n);
-};
-
 function RandomPokemonBalls() {
   const nav = useNavigate();
   const [ids, setIds] = useState<number[]>(() => pickUniqueIds(13));
@@ -47,7 +48,7 @@ function RandomPokemonBalls() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIds(pickUniqueIds(13));
-    }, RANDOM_DELAY_MS);
+    }, RandomDelayMs);
     return () => clearInterval(timer);
   }, []);
 

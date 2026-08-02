@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { API_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
-import RandomPokemonBalls from "./Randompokemon";
+import RandomPokemonBalls from "./RandomPokemon";
 
 //ใช้ตอน Search
 const filterByKeyword = (list: Tdata[], keyword: string) => {

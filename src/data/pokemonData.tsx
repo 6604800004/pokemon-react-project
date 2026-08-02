@@ -81,8 +81,8 @@ export type Variety = {
 };
 
 export type StatBarProps = {
-  label: string;
   value: number;
+  name : string;
 };
 
 export const Status_Label: Record<string, string> = {

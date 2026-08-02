@@ -1,17 +1,15 @@
 import { type StatBarProps } from "../data/pokemonData";
 
-// ค่าพลัง
-const Max_Status = 265;
-// จำนวนหลอดค่าพลัง
-const Total_Segments = 15;
+const Max_Status = 255; // ค่าพลัง
+const Total_Segments = 15; // จำนวนหลอดค่าพลัง
 
-// แปลงค่าพลังเป็นจำนวนช่อง status
+// คำควณจำนวนช่องที่ต้องเติมลง Total_Segments
 function getFilledSegments(baseStat: number): number {
-  const ratio = Math.min(baseStat / Max_Status, 1);
-  return Math.round(ratio * Total_Segments);
+  const ratio = Math.min(baseStat / Max_Status, 1); // จำกัดสัดส่วนไม่ให้เกิน 1
+  return Math.ceil(ratio * Total_Segments); // ปัดเศษขึ้น ex. 0.2 > 1
 }
 
-function StatBar({ label, value }: StatBarProps) {
+function StatBar({ value, name }: StatBarProps) {
   const filledSegments = getFilledSegments(value);
 
   return (
@@ -28,7 +26,7 @@ function StatBar({ label, value }: StatBarProps) {
           />
         ))}
       </div>
-      <span className="mt-1 text-[14px] text-white text-center ">{label}</span>
+      <span className="mt-1 text-[14px] text-white text-center ">{name}</span>
     </div>
   );
 }

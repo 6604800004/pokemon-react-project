@@ -427,7 +427,7 @@ function PokemonDetail() {
           <div className="absolute top-[280px] left-[7%] w-[260px] pointer-events-auto">
             {/* ประเภท */}
             <div>
-              <p className="text-[28px] text-white mb-3">ประเภท</p>
+              <p className="text-[28px] text-center text-white mb-3">ประเภท</p>
               <div className="flex flex-col gap-3">
                 {data.types.map((t) => (
                   <span
@@ -444,7 +444,9 @@ function PokemonDetail() {
             {/* จุดอ่อน */}
             {weaknessList.length > 0 && (
               <div className="mt-6">
-                <p className="text-[28px] text-white mb-3">จุดอ่อน</p>
+                <p className="text-[28px] text-center text-white mb-3">
+                  จุดอ่อน
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   {weaknessList.map(([typeName]) => (
                     <span
@@ -499,7 +501,7 @@ function PokemonDetail() {
               <div className="absolute top-[17%] right-[5%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">ส่วนสูง</p>
                 <p className="text-[19px] text-[#ffffff]">
-                  {data.height / 10} m
+                  {(data.height / 10).toFixed(1)} m
                 </p>
               </div>
 
@@ -515,7 +517,7 @@ function PokemonDetail() {
               <div className="absolute top-[21%] right-[5%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">น้ำหนัก</p>
                 <p className="text-[19px] text-[#ffffff]">
-                  {data.weight / 10} kg
+                  {(data.height / 10).toFixed(1)} kg
                 </p>
               </div>
 
@@ -604,8 +606,8 @@ function PokemonDetail() {
               {data.stats.map((s) => (
                 <StatBar
                   key={s.stat.name}
-                  label={Status_Label[s.stat.name] ?? s.stat.name}
                   value={s.base_stat}
+                  name={Status_Label[s.stat.name] ?? s.stat.name}
                 />
               ))}
             </div>
