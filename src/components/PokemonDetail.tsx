@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { API_Base, CDN, RAW_URL } from "../config";
+import { API_Base, CDN } from "../config";
 import {
   type PokemonDetailData,
   type TypeDamageRelations,
@@ -10,66 +10,74 @@ import { BuildPokemon, Status_Label, getPokemonId } from "../data/pokemonData";
 import StatBar from "./StatusBar";
 import PokemonForms from "./PokemonForms";
 
+// id ที่แยกเป็น species กับลำดับร่าง เช่น "0026_1" ตัวที่ 26 ร่างที่ 1
 type ParsedId = { speciesId: number; formIndex: number };
 
+// แปลง id จาก url (เช่น "26" หรือ "26_1") กลับเป็น speciesId/formIndex
+// ถ้าไม่ตรงรูปแบบตัวเลข (เช่นเป็นชื่อโปเกมอน) จะคืนค่า null
 const parseRouteId = (raw: string): ParsedId | null => {
-  const match = raw.match(/^(\d+)(?:_(\d+))?$/);
+  const match = raw.match(/^(\d+)(?:_(\d+))?$/); // ผลจับคู่ regex ถ้า raw ไม่ใช่รูปแบบตัวเลขจะเป็น null
   if (!match) return null;
-  const speciesId = parseInt(match[1], 10);
-  const formIndex = match[2] ? parseInt(match[2], 10) : 0;
+  const speciesId = parseInt(match[1], 10); // เลข species จากกลุ่มแรกของ regex
+  const formIndex = match[2] ? parseInt(match[2], 10) : 0; // ลำดับร่างจากกลุ่มที่สอง ถ้าไม่มีถือว่าเป็นร่างหลัก (0)
   return { speciesId, formIndex };
 };
 
+// สร้าง id สำหรับใส่ใน url จาก speciesId และลำดับร่าง เติม 0 นำหน้าให้ครบ 4 หลัก
+// ร่างหลัก (formIndex 0) ไม่ต้องมีต่อท้าย ส่วนร่างอื่นจะมี "_ลำดับ" ต่อท้าย
 const buildRouteId = (speciesId: number, formIndex: number): string => {
-  const padded = speciesId.toString().padStart(4, "0");
+  const padded = speciesId.toString().padStart(4, "0"); // speciesId แบบเติม 0 นำหน้าครบ 4 หลัก
   return formIndex === 0 ? padded : `${padded}_${formIndex}`;
 };
 
 function PokemonDetail() {
-  const nav = useNavigate();
-  const { id } = useParams();
-  const [data, setData] = useState<PokemonDetailData | null>(null);
-  const [speciesId, setSpeciesId] = useState<number | null>(null);
-  const [genus, setGenus] = useState("");
-  const [flavorText, setFlavorText] = useState("");
-  const [weaknesses, setWeaknesses] = useState<Record<string, number>>({});
-  const [varieties, setVarieties] = useState<Variety[]>([]);
-  const [evolutionChainUrl, setEvolutionChainUrl] = useState("");
+  const nav = useNavigate(); // ใช้เปลี่ยนหน้า เช่น ไปโปเกมอนตัวก่อนหน้า/ถัดไป หรือไปหน้า 404
+  const { id } = useParams(); // id หรือชื่อโปเกมอนจาก url
+  const [data, setData] = useState<PokemonDetailData | null>(null); // ข้อมูลหลักของโปเกมอนตัวนี้
+  const [speciesId, setSpeciesId] = useState<number | null>(null); // เลข id ของ species (ใช้แสดงเลขเด็กซ์)
+  const [genus, setGenus] = useState(""); // ชนิด/สายพันธุ์ เช่น "โปเกมอนเมาส์"
+  const [flavorText, setFlavorText] = useState(""); // คำบรรยายโปเกมอนจากเกม
+  const [weaknesses, setWeaknesses] = useState<Record<string, number>>({}); // ตัวคูณความเสียหายที่ได้รับจากแต่ละ type
+  const [varieties, setVarieties] = useState<Variety[]>([]); // ร่างอื่น ๆ ของ species นี้
+  const [evolutionChainUrl, setEvolutionChainUrl] = useState(""); // url ของสายวิวัฒนาการ ส่งต่อให้ PokemonForms
   const [prevPokemon, setPrevPokemon] = useState<{
     id: number;
     name: string;
     nav: string;
-  } | null>(null);
+  } | null>(null); // โปเกมอนตัวก่อนหน้าไว้ทำปุ่มเลื่อนซ้าย
   const [nextPokemon, setNextPokemon] = useState<{
     id: number;
     name: string;
     nav: string;
-  } | null>(null);
+  } | null>(null); // โปเกมอนตัวถัดไปไว้ทำปุ่มเลื่อนขวา
   const [abilityPopup, setAbilityPopup] = useState<{
     name: string;
     text: string;
-  } | null>(null);
-  const [abilityLoading, setAbilityLoading] = useState(false);
+  } | null>(null); // popup อธิบายความสามารถพิเศษที่กำลังเปิดอยู่
+  const [abilityLoading, setAbilityLoading] = useState(false); // กำลังโหลดคำอธิบายความสามารถพิเศษอยู่หรือไม่
 
-  const toJsdelivr = (url: string) => url.replace(RAW_URL, CDN);
+  // เปลี่ยน url รูปจาก raw github ไปใช้ CDN แทนเพื่อโหลดเร็วขึ้น
+  const toJsdelivr = (url: string) => url.replace(API_Base, CDN);
 
+  // โหลดคำอธิบายความสามารถพิเศษ (ability) มาแสดงใน popup เมื่อกดไอคอน "?"
   const showAbilityInfo = async (name: string, url: string) => {
     setAbilityPopup({ name, text: "" });
     setAbilityLoading(true);
     try {
-      const res = await fetch(url);
-      const json = await res.json();
+      const res = await fetch(url); // ผลตอบกลับจาก endpoint ของ ability นี้
+      const json = await res.json(); // ข้อมูล ability แบบเต็ม (มีคำอธิบายหลายภาษา)
       const thEntry = json.effect_entries?.find(
         (e: { language: { name: string } }) => e.language.name === "th",
-      );
+      ); // รายการคำอธิบายภาษาไทย (ถ้ามี)
       const enEntry = json.effect_entries?.find(
         (e: { language: { name: string } }) => e.language.name === "en",
-      );
+      ); // รายการคำอธิบายภาษาอังกฤษ ใช้เป็นตัวสำรอง
+      // ใช้คำอธิบายภาษาไทยก่อน ถ้าไม่มีค่อย fallback เป็นอังกฤษ (แบบเต็มก่อนแบบย่อ)
       const text =
         thEntry?.effect ??
         enEntry?.effect ??
         enEntry?.short_effect ??
-        "ไม่มีข้อมูล";
+        "ไม่มีข้อมูล"; // ข้อความสุดท้ายที่จะเอาไปโชว์ใน popup
       setAbilityPopup({ name, text });
     } catch {
       setAbilityPopup({ name, text: "โหลดข้อมูลไม่สำเร็จ" });
@@ -86,25 +94,27 @@ function PokemonDetail() {
 
     window.scrollTo(0, 0); // เปลี่ยนโปเกมอนแล้วเลื่อนขึ้นบนสุด ให้เหมือนเปิดหน้าใหม่
 
-    let cancelled = false;
+    let cancelled = false; // กันไม่ให้ setState หลังเปลี่ยนหน้า/เปลี่ยน id ไปแล้ว
 
     const fetchData = async () => {
       try {
-        const parsed = parseRouteId(id);
-        let pokemonName: string;
+        // ถ้า id เป็นตัวเลข (เช่น "26_1") ต้องหาชื่อร่างที่ตรงกับ formIndex จาก species ก่อน
+        // ถ้า id เป็นชื่ออยู่แล้ว (เช่น "raichu-alola") ใช้ชื่อนั้นยิง pokemon ได้เลย
+        const parsed = parseRouteId(id); // แยก speciesId/formIndex ถ้า id เป็นตัวเลข ไม่งั้นเป็น null
+        let pokemonName: string; // ชื่อร่างที่จะใช้ยิง endpoint /pokemon ต่อไป
         if (parsed) {
           const speciesRes = await fetch(
             `${API_Base}/pokemon-species/${parsed.speciesId}`,
-          );
+          ); // ผลตอบกลับ species ตาม speciesId ที่แยกได้
           if (!speciesRes.ok) {
             if (!cancelled) nav("/404", { replace: true });
             return;
           }
-          const speciesJsonPeek = await speciesRes.json();
+          const speciesJsonPeek = await speciesRes.json(); // ข้อมูล species แบบเต็ม (เอาไว้แค่ดูรายชื่อร่างก่อน)
           const varietiesPeek: Variety[] = (
             speciesJsonPeek.varieties ?? []
-          ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default));
-          const targetVariety = varietiesPeek[parsed.formIndex];
+          ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default)); // ร่างทั้งหมดที่ผ่านเงื่อนไข BuildPokemon
+          const targetVariety = varietiesPeek[parsed.formIndex]; // ร่างที่ตรงกับลำดับ formIndex ที่ต้องการ
           if (!targetVariety) {
             if (!cancelled) nav("/404", { replace: true });
             return;
@@ -114,52 +124,57 @@ function PokemonDetail() {
           pokemonName = id;
         }
 
-        const res = await fetch(`${API_Base}/pokemon/${pokemonName}`);
+        const res = await fetch(`${API_Base}/pokemon/${pokemonName}`); // ผลตอบกลับข้อมูลโปเกมอนตัวนี้แบบเต็ม
         if (!res.ok) {
           if (!cancelled) nav("/404", { replace: true });
           return;
         }
-        const json: PokemonDetailData = await res.json();
+        const json: PokemonDetailData = await res.json(); // ข้อมูลหลัก (stats, types, sprites) ของโปเกมอนตัวนี้
         if (cancelled) return;
         setData(json);
 
-        const speciesRes = await fetch(json.species.url);
-        const speciesJson = await speciesRes.json();
+        // โหลดข้อมูล species เพิ่ม (ชนิด, คำบรรยาย, ร่างอื่น, สายวิวัฒนาการ)
+        const speciesRes = await fetch(json.species.url); // ผลตอบกลับ species ของโปเกมอนตัวนี้
+        const speciesJson = await speciesRes.json(); // ข้อมูล species แบบเต็ม
         if (cancelled) return;
 
-        const sId = parseInt(getPokemonId(json.species.url), 10);
+        const sId = parseInt(getPokemonId(json.species.url), 10); // เลข id ของ species แปลงจาก url เป็นตัวเลข
         setSpeciesId(sId);
 
+        // ใช้ชนิดภาษาไทยก่อน ถ้าไม่มีค่อย fallback เป็นอังกฤษ
         const thGenus = speciesJson.genera.find(
           (g: { language: { name: string } }) => g.language.name === "th",
-        );
+        ); // ชนิดพันธุ์ภาษาไทย (ถ้ามี)
         const enGenus = speciesJson.genera.find(
           (g: { language: { name: string } }) => g.language.name === "en",
-        );
+        ); // ชนิดพันธุ์ภาษาอังกฤษ ใช้เป็นตัวสำรอง
         setGenus(thGenus?.genus ?? enGenus?.genus ?? "-");
 
         const speciesVarieties: Variety[] = (
           speciesJson.varieties ?? []
-        ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default));
+        ).filter((v: Variety) => BuildPokemon(v.pokemon.name, v.is_default)); // ร่างทั้งหมดของ species นี้ที่ผ่านเงื่อนไข BuildPokemon
         setVarieties(speciesVarieties);
         setEvolutionChainUrl(speciesJson.evolution_chain?.url ?? "");
 
+        // ตำแหน่งร่างปัจจุบันในลิสต์ร่างทั้งหมด ใช้หาร่างก่อนหน้า/ถัดไปในกลุ่มเดียวกัน
         const currentIndex = speciesVarieties.findIndex(
           (v) => v.pokemon.name === json.name,
-        );
+        ); // ตำแหน่งของร่างปัจจุบันในลิสต์ ถ้าหาไม่เจอจะเป็น -1
 
+        // หาโปเกมอนตัวก่อนหน้า/ถัดไปสำหรับปุ่มเลื่อน
+        // ลำดับความสำคัญ: ร่างถัดไปของ species เดียวกันก่อน ถ้าไม่มีแล้วค่อยข้าม species ไป (ตัวแรก/ตัวสุดท้ายของ species นั้น)
         const resolveNeighbor = async (
           direction: "prev" | "next",
         ): Promise<{ id: number; name: string; nav: string } | null> => {
           if (currentIndex !== -1) {
             const neighborIndex =
-              direction === "next" ? currentIndex + 1 : currentIndex - 1;
-            const neighborVariety = speciesVarieties[neighborIndex];
+              direction === "next" ? currentIndex + 1 : currentIndex - 1; // ตำแหน่งร่างข้าง ๆ ในลิสต์เดียวกัน
+            const neighborVariety = speciesVarieties[neighborIndex]; // ร่างข้าง ๆ ถ้ามี (undefined ถ้าเกินขอบลิสต์)
             if (neighborVariety) {
               try {
-                const r = await fetch(neighborVariety.pokemon.url);
+                const r = await fetch(neighborVariety.pokemon.url); // ผลตอบกลับข้อมูลร่างข้าง ๆ นี้
                 if (r.ok) {
-                  const d = await r.json();
+                  const d = await r.json(); // ข้อมูลร่างข้าง ๆ แบบเต็ม (เอาแค่ชื่อไปใช้)
                   return {
                     id: sId,
                     name: d.name,
@@ -170,14 +185,16 @@ function PokemonDetail() {
             }
           }
 
-          const neighborSpeciesId = direction === "next" ? sId + 1 : sId - 1;
+          // ไม่มีร่างถัดไปในกลุ่มเดียวกันแล้ว ให้ข้ามไป species ถัดไป/ก่อนหน้า
+          const neighborSpeciesId = direction === "next" ? sId + 1 : sId - 1; // เลข species ที่จะข้ามไป
           if (neighborSpeciesId < 1) return null;
 
           try {
             if (direction === "next") {
-              const r = await fetch(`${API_Base}/pokemon/${neighborSpeciesId}`);
+              // ถัดไปเสมอเริ่มที่ร่างแรก (formIndex 0) ของ species ถัดไป
+              const r = await fetch(`${API_Base}/pokemon/${neighborSpeciesId}`); // ผลตอบกลับของโปเกมอน species ถัดไป
               if (!r.ok) return null;
-              const d = await r.json();
+              const d = await r.json(); // ข้อมูลโปเกมอน species ถัดไปแบบเต็ม
               return {
                 id: neighborSpeciesId,
                 name: d.name,
@@ -185,25 +202,26 @@ function PokemonDetail() {
               };
             }
 
+            // ก่อนหน้าต้องไปเอาร่างสุดท้ายของ species ก่อนหน้า จึงต้องโหลด species นั้นมาดูก่อนว่ามีกี่ร่าง
             const neighborSpeciesRes = await fetch(
               `${API_Base}/pokemon-species/${neighborSpeciesId}`,
-            );
+            ); // ผลตอบกลับ species ก่อนหน้า
             if (!neighborSpeciesRes.ok) return null;
-            const neighborSpeciesJson = await neighborSpeciesRes.json();
+            const neighborSpeciesJson = await neighborSpeciesRes.json(); // ข้อมูล species ก่อนหน้าแบบเต็ม
 
             const neighborVarieties: Variety[] = (
               neighborSpeciesJson.varieties ?? []
             ).filter((v: Variety) =>
               BuildPokemon(v.pokemon.name, v.is_default),
-            );
+            ); // ร่างทั้งหมดของ species ก่อนหน้าที่ผ่านเงื่อนไข BuildPokemon
 
-            const lastIndex = neighborVarieties.length - 1;
-            const lastVariety = neighborVarieties[lastIndex];
+            const lastIndex = neighborVarieties.length - 1; // ตำแหน่งร่างสุดท้ายของ species ก่อนหน้า
+            const lastVariety = neighborVarieties[lastIndex]; // ร่างสุดท้ายนั้น (ตัวที่จะแสดงเป็น "ก่อนหน้า")
             if (!lastVariety) return null;
 
-            const r = await fetch(lastVariety.pokemon.url);
+            const r = await fetch(lastVariety.pokemon.url); // ผลตอบกลับข้อมูลร่างสุดท้ายนั้น
             if (!r.ok) return null;
-            const d = await r.json();
+            const d = await r.json(); // ข้อมูลร่างสุดท้ายแบบเต็ม (เอาแค่ชื่อไปใช้)
             return {
               id: neighborSpeciesId,
               name: d.name,
@@ -214,6 +232,7 @@ function PokemonDetail() {
           }
         };
 
+        // ปุ่มก่อนหน้า/ถัดไปไม่ต้องรอกัน ปล่อยให้อัปเดตทีหลังเมื่อโหลดเสร็จ
         resolveNeighbor("prev").then((res) => {
           if (!cancelled) setPrevPokemon(res);
         });
@@ -221,13 +240,15 @@ function PokemonDetail() {
           if (!cancelled) setNextPokemon(res);
         });
 
+        // ใช้คำบรรยายภาษาไทยก่อน ถ้าไม่มีค่อย fallback เป็นอังกฤษ
         const thEntry = speciesJson.flavor_text_entries.find(
           (e: { language: { name: string } }) => e.language.name === "th",
-        );
+        ); // คำบรรยายภาษาไทย (ถ้ามี)
         const enEntry = speciesJson.flavor_text_entries.find(
           (e: { language: { name: string } }) => e.language.name === "en",
-        );
-        const rawText = thEntry?.flavor_text ?? enEntry?.flavor_text ?? "";
+        ); // คำบรรยายภาษาอังกฤษ ใช้เป็นตัวสำรอง
+        const rawText = thEntry?.flavor_text ?? enEntry?.flavor_text ?? ""; // คำบรรยายดิบก่อนตัดขึ้นบรรทัดใหม่ทิ้ง
+        // ข้อความดิบจาก PokeAPI มีตัวขึ้นบรรทัดใหม่/ตัวเว้นวรรคปนอยู่ ต้องรวมเป็นบรรทัดเดียว
         setFlavorText(
           rawText
             .replace(/[\f\n\r]+/g, " ")
@@ -235,14 +256,19 @@ function PokemonDetail() {
             .trim(),
         );
 
+        // โหลดความสัมพันธ์ความเสียหายของทุก type ที่โปเกมอนตัวนี้มี (อาจมี 1-2 type)
         const typeResults: TypeDamageRelations[] = await Promise.all(
           json.types.map((t) => fetch(t.type.url).then((res) => res.json())),
-        );
+        ); // ความสัมพันธ์ความเสียหายของแต่ละ type ที่โปเกมอนตัวนี้มี
         if (cancelled) return;
 
-        const multipliers: Record<string, number> = {};
+        // รวมตัวคูณความเสียหายจากทุก type เข้าด้วยกัน (คูณสะสม เพราะโดน 2 type พร้อมกันได้)
+        // double_damage_from = โดนจาก type นี้แล้วแรงขึ้น 2 เท่า (จุดอ่อน)
+        // half_damage_from = โดนจาก type นี้แล้วแรงลด 0.5 เท่า (ต้านทาน)
+        // no_damage_from = ไม่ได้รับความเสียหายเลยจาก type นี้ (ภูมิคุ้มกัน)
+        const multipliers: Record<string, number> = {}; // ตัวคูณความเสียหายสะสมของแต่ละ type ที่โปเกมอนตัวนี้ได้รับ
         typeResults.forEach((typeData) => {
-          const rel = typeData.damage_relations;
+          const rel = typeData.damage_relations; // ความสัมพันธ์ความเสียหายของ type นี้ที่กำลังวนอยู่
           rel.double_damage_from.forEach((t) => {
             multipliers[t.name] = (multipliers[t.name] ?? 1) * 2;
           });
@@ -265,11 +291,13 @@ function PokemonDetail() {
     };
   }, [id, nav]);
 
+  // ปุ่มเลื่อนไปโปเกมอนตัวก่อนหน้า
   const handlePreviousPokemon = () => {
     if (!prevPokemon) return;
     nav(`/PokeDex/${prevPokemon.nav}`);
   };
 
+  // ปุ่มเลื่อนไปโปเกมอนตัวถัดไป
   const handleNextPokemon = () => {
     if (!nextPokemon) return;
     nav(`/PokeDex/${nextPokemon.nav}`);
@@ -277,14 +305,15 @@ function PokemonDetail() {
 
   if (!data) return null;
 
+  // เอาเฉพาะ type ที่โดนความเสียหายมากกว่าปกติ (จุดอ่อน) เรียงจากคูณมากไปน้อย
   const weaknessList = Object.entries(weaknesses)
     .filter(([, mult]) => mult > 1)
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => b[1] - a[1]); // [ชื่อ type, ตัวคูณ] เรียงจุดอ่อนที่ร้ายแรงที่สุดไว้ก่อน
 
   const spriteUrl = toJsdelivr(
     data.sprites.other["official-artwork"].front_default ??
       data.sprites.front_default,
-  );
+  ); // url รูปหลักที่ใช้แสดงตัวโปเกมอนบนหน้ารายละเอียด
 
   return (
     <>

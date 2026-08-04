@@ -1,11 +1,14 @@
+// ข้อมูลโปเกมอน 1 ตัวที่ใช้แสดงในหน้ารายการ
 export type Tdata = {
     name: string;
     url: string;
     id: string;
     types: string[];
-    sprite: string; 
+    sprite: string;
 };
 
+// กรองว่าร่าง/ฟอร์มไหนควรแสดงในแอป: ตัดร่าง totem, cap และ raichu-mega ทิ้ง
+// ที่เหลือแสดงเฉพาะร่างหลัก (isDefault) หรือร่างพิเศษที่รองรับ (mega, galar, gmax, alola)
 export const BuildPokemon = (name: string, isDefault: boolean) =>
   !name.includes("-totem") &&
   !name.includes("-cap") &&
@@ -18,6 +21,7 @@ export const BuildPokemon = (name: string, isDefault: boolean) =>
     name.includes("-gmax") ||
     name.includes("-alola"));
 
+// โครงสร้าง types ของโปเกมอนตามที่ PokeAPI ส่งมา
 export type TypePokemon = {
     types: {
         slot: number,
@@ -28,6 +32,7 @@ export type TypePokemon = {
     }[];
 }
 
+// ข้อมูลรายละเอียดโปเกมอน 1 ตัว (จาก endpoint /pokemon/:id)
 export type PokemonDetailData = {
     id: number;
     name: string;
@@ -62,6 +67,7 @@ export type PokemonDetailData = {
     
 };
 
+// ความสัมพันธ์ความเสียหายของแต่ละ type ใช้คำนวณจุดอ่อน/จุดต้าน
 export type TypeDamageRelations = {
     damage_relations: {
         double_damage_from: { name: string; url: string }[];
@@ -70,21 +76,25 @@ export type TypeDamageRelations = {
     };
 };
 
+// ดึง id ออกจาก url ของ PokeAPI โดยเอาส่วนสุดท้ายหลัง "/"
 export const getPokemonId = (url: string) => {
     const parts = url.split('/').filter(Boolean);
     return parts[parts.length - 1];
 }
 
+// ร่าง/ฟอร์มของโปเกมอนตัวหนึ่ง (จาก species.varieties)
 export type Variety = {
   is_default: boolean;
   pokemon: { name: string; url: string };
 };
 
+// props ของ StatBar: ค่าพลัง และชื่อค่าพลังที่จะแสดง
 export type StatBarProps = {
   value: number;
   name : string;
 };
 
+// แปลชื่อค่าพลัง (stat) จากภาษาอังกฤษเป็นภาษาไทยเพื่อแสดงผล
 export const Status_Label: Record<string, string> = {
   hp: "HP",
   attack: "โจมตี",

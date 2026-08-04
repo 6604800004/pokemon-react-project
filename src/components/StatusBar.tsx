@@ -1,16 +1,16 @@
 import { type StatBarProps } from "../data/pokemonData";
 
-const Max_Status = 255; // ค่าพลัง
-const Total_Segments = 15; // จำนวนหลอดค่าพลัง
+const Max_Status = 255; // ค่าพลังสูงสุดที่เป็นไปได้ ใช้เทียบสัดส่วน
+const Total_Segments = 15; // แบ่งแถบพลังออกเป็น 15 ช่อง
 
-// คำควณจำนวนช่องที่ต้องเติมลง Total_Segments
+// คำนวณว่าจากค่าพลังจริง ต้องติดสีกี่ช่องจากทั้งหมด Total_Segments
 function getFilledSegments(baseStat: number): number {
-  const ratio = Math.min(baseStat / Max_Status, 1); // จำกัดสัดส่วนไม่ให้เกิน 1
-  return Math.ceil(ratio * Total_Segments); // ปัดเศษขึ้น ex. 0.2 > 1
+  const ratio = Math.min(baseStat / Max_Status, 1); // สัดส่วน 0-1 กันไม่ให้เกิน 1
+  return Math.ceil(ratio * Total_Segments); // ปัดขึ้น ค่าพลังน้อยจะได้เห็นช่องติดสีอย่างน้อย 1 ช่อง
 }
 
 function StatBar({ value, name }: StatBarProps) {
-  const filledSegments = getFilledSegments(value);
+  const filledSegments = getFilledSegments(value); // จำนวนช่องที่ติดสี ที่เหลือเป็นช่องว่าง
 
   return (
     <div className="flex flex-col items-center ">

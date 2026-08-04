@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 
 function NotFound() {
-  const nav = useNavigate();
+  const nav = useNavigate(); // ใช้เปลี่ยนหน้ากลับไปหน้าแรกเมื่อกดปุ่ม
 
   return (
     <div className="notfound-dots relative min-h-screen flex flex-col items-center justify-center bg-[#f5f5f5] overflow-hidden">

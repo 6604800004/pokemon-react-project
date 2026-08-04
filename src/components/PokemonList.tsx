@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { API_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
-import RandomPokemonBalls from "./RandomPokemon";
+import RandomPokemonBalls from "./Randompokemon";
 
 //ใช้ตอน Search
 const filterByKeyword = (list: Tdata[], keyword: string) => {
-  const key = keyword.toLowerCase().trim();
+  const key = keyword.toLowerCase().trim(); // คำค้นหาแบบตัดช่องว่างและปรับเป็นพิมพ์เล็กแล้ว
   if (!key) return list;
   return list.filter(
     (pokemon) =>
@@ -19,25 +19,30 @@ const filterByKeyword = (list: Tdata[], keyword: string) => {
   );
 };
 
+// รวมข้อมูลเก่ากับข้อมูลใหม่ ตัดตัวซ้ำด้วยชื่อ แล้วเรียงตาม id
 const mergeData = (prev: Tdata[], incoming: Tdata[]) => {
-  const map = new Map(prev.map((pokemon) => [pokemon.name, pokemon]));
+  const map = new Map(prev.map((pokemon) => [pokemon.name, pokemon])); // ข้อมูลเก่าเก็บเป็น map คีย์ชื่อ ไว้เช็คซ้ำเร็ว ๆ
   incoming.forEach(
     (pokemon) => !map.has(pokemon.name) && map.set(pokemon.name, pokemon),
   );
   return [...map.values()].sort((a, b) => +a.id - +b.id);
 };
 
+// ดึงข้อมูลโปเกมอนทีละชุด (20 ตัว) เริ่มจาก offset ที่กำหนด
+// ต้องยิง species ก่อนเพื่อกรองร่างที่ต้องการ (BuildPokemon) แล้วค่อยยิง pokemon เพื่อเอา type/sprite
 const fetchBatch = async (offset: number) => {
   const list = await fetch(
     `${API_Base}/pokemon-species?limit=20&offset=${offset}`,
-  ).then((res) => res.json());
+  ).then((res) => res.json()); // รายชื่อ species 20 ตัวในหน้านี้ (แค่ชื่อกับ url ยังไม่มีรายละเอียด)
 
   const allSpecies = await Promise.all(
     list.results.map((species: { url: string }) =>
       fetch(species.url).then((res) => res.json()),
     ),
-  );
+  ); // ข้อมูล species แบบเต็มของทั้ง 20 ตัว (มีรายชื่อร่างของแต่ละตัว)
 
+  // แต่ละ species อาจมีหลายร่าง (varieties) เอาเฉพาะร่างที่ BuildPokemon กรองผ่าน แล้วทำให้แบนเป็น array เดียว (flatMap)
+  // เก็บ speciesUrl ติดไปด้วยเพราะต้องใช้หาเลขเด็กซ์ (id) ทีหลัง
   const entries = allSpecies.flatMap((species, index) =>
     species.varieties
       .filter(
@@ -52,6 +57,7 @@ const fetchBatch = async (offset: number) => {
       })),
   );
 
+  // ยิง fetch อีกรอบต่อร่าง เพื่อเอา type และรูปภาพมาประกอบเป็นข้อมูลที่การ์ดใช้แสดงผล
   const newData = await Promise.all(
     entries.map((e: { name: string; url: string; speciesUrl: string }) =>
       fetch(e.url)
@@ -67,35 +73,38 @@ const fetchBatch = async (offset: number) => {
     ),
   );
 
-  return { newData, hasNext: !!list.next };
+  return { newData, hasNext: !!list.next }; // hasNext บอกว่ายังมีข้อมูลให้โหลดเพิ่มจาก API อีกหรือไม่
 };
 
 function PokemonList() {
-  const nav = useNavigate();
-  const [searchParams] = useSearchParams();
-  const initialType = searchParams.get("type") ?? "";
-  const [data, setData] = useState<Tdata[]>([]);
-  const [inputText, setInputText] = useState("");
-  const [searchKeyword, setSearchKeyword] = useState(initialType);
-  const [visibleCount, setVisibleCount] = useState(16);
-  const [hasMore, setHasMore] = useState(true);
+  const nav = useNavigate(); // ใช้เปลี่ยนหน้าไปหน้ารายละเอียดเมื่อกดการ์ดโปเกมอน
+  const [searchParams] = useSearchParams(); // query string ของ url ปัจจุบัน (ใช้อ่านค่า ?type=)
+  const initialType = searchParams.get("type") ?? ""; // มาจากการกด type ในหน้ารายละเอียด เช่น ?type=fire
+  const [data, setData] = useState<Tdata[]>([]); // โปเกมอนทั้งหมดที่โหลดมาแล้ว (สะสมไปเรื่อย ๆ)
+  const [inputText, setInputText] = useState(""); // ข้อความในช่อง input ตอนพิมพ์
+  const [searchKeyword, setSearchKeyword] = useState(initialType); // คำค้นหาที่ยืนยันแล้ว (กด Enter/ปุ่มค้นหา)
+  const [visibleCount, setVisibleCount] = useState(16); // จำนวนการ์ดที่แสดงตอนนี้
+  const [hasMore, setHasMore] = useState(true); // ยังมีข้อมูลให้โหลดเพิ่มจาก API หรือไม่
   const [loading, setLoading] = useState(false);
-  const hasFetched = useRef(false);
-  const offsetRef = useRef(0);
-  const isFetching = useRef(false);
-  const dataRef = useRef<Tdata[]>([]);
+  const hasFetched = useRef(false); // กันไม่ให้ยิง fetch ครั้งแรกซ้ำจาก StrictMode
+  const offsetRef = useRef(0); // offset ล่าสุดที่โหลดจาก API แล้ว
+  const isFetching = useRef(false); // กันการยิง fetch ซ้อนกันหลายครั้งพร้อมกัน
+  const dataRef = useRef<Tdata[]>([]); // เก็บ data ล่าสุดแบบ sync ไว้ใช้ใน closure ของฟังก์ชัน fetch
 
+  // กรองข้อมูลตามคำค้นหาปัจจุบัน
   const filteredData = useMemo(
     () => filterByKeyword(data, searchKeyword),
     [data, searchKeyword],
   );
+  // ตัดมาแสดงเฉพาะเท่าที่ visibleCount กำหนด (infinite scroll แบบกดปุ่ม)
   const visibleData = useMemo(
     () => filteredData.slice(0, visibleCount),
     [filteredData, visibleCount],
   );
-  const hasMoreCached = visibleCount < filteredData.length;
-  const showLoadMore = !loading && (hasMoreCached || hasMore);
+  const hasMoreCached = visibleCount < filteredData.length; // ข้อมูลที่มีอยู่แล้วยังพอให้เลื่อนดูต่อ ไม่ต้องยิง API
+  const showLoadMore = !loading && (hasMoreCached || hasMore); // ควรโชว์ปุ่ม "ค้นหาเพิ่มเติม" หรือไม่
 
+  // ห่อการเรียก fetch ให้มี loading state และกันการยิงซ้อน
   const withFetch = async (fn: () => Promise<void>) => {
     if (isFetching.current) return;
     isFetching.current = true;
@@ -110,12 +119,14 @@ function PokemonList() {
     }
   };
 
+  // อัปเดตทั้ง state และ ref ให้ตรงกันหลังได้ข้อมูลชุดใหม่มา
   const applyBatch = (merged: Tdata[], hasNext: boolean) => {
     if (!hasNext) setHasMore(false);
     dataRef.current = merged;
     setData([...merged]);
   };
 
+  // โหลดข้อมูลชุดถัดไปจาก API ที่ offset ที่กำหนด แล้ว merge เข้ากับของเดิม
   const fetchSpecies = (offset: number) =>
     withFetch(async () => {
       const { newData, hasNext } = await fetchBatch(offset);
@@ -123,6 +134,7 @@ function PokemonList() {
       applyBatch(mergeData(dataRef.current, newData), hasNext);
     });
 
+  // โหลดข้อมูลเพิ่มไปเรื่อย ๆ จนกว่าผลลัพธ์ที่ค้นหาเจอจะครบตามจำนวนที่ต้องการ (หรือ API หมดแล้ว)
   const fetchUntilEnough = (keyword: string, needed: number) =>
     withFetch(async () => {
       let cur = [...dataRef.current];
@@ -136,6 +148,7 @@ function PokemonList() {
       }
     });
 
+  // กดค้นหา: ตั้งคำค้นหาใหม่ รีเซ็ตจำนวนที่แสดง แล้วโหลดเพิ่มถ้าผลลัพธ์ที่มียังไม่พอ
   const handleSearch = () => {
     const keyword = inputText.trim();
     if (keyword === searchKeyword) return;
@@ -145,9 +158,10 @@ function PokemonList() {
       fetchUntilEnough(keyword, 16);
   };
 
+  // กด "ค้นหาเพิ่มเติม": โชว์เพิ่มจากของที่มีอยู่ก่อน ถ้าไม่พอค่อยยิง API เพิ่ม
   const loadMore = () => {
     if (loading || isFetching.current) return;
-    const next = visibleCount + 16;
+    const next = visibleCount + 16; // จำนวนการ์ดที่ต้องการให้แสดงหลังกดปุ่ม
     if (searchKeyword) {
       if (filteredData.length >= next || !hasMore) setVisibleCount(next);
       else
@@ -159,6 +173,7 @@ function PokemonList() {
     }
   };
 
+  // โหลดข้อมูลชุดแรกตอนเปิดหน้า และถ้ามาจากการกด type ให้โหลดจนกว่าจะมีผลลัพธ์พอแสดง
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
