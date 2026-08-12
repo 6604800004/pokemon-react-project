@@ -7,7 +7,7 @@ export type Tdata = {
     sprite: string;
 };
 
-// กรองว่าร่าง/ฟอร์มไหนควรแสดงในแอป: ตัดร่าง totem, cap และ raichu-mega ทิ้ง
+// กรองว่าร่าง/ฟอร์มไหนควรแสดง :
 // ที่เหลือแสดงเฉพาะร่างหลัก (isDefault) หรือร่างพิเศษที่รองรับ (mega, galar, gmax, alola)
 export const BuildPokemon = (name: string, isDefault: boolean) =>
   !name.includes("-totem") &&

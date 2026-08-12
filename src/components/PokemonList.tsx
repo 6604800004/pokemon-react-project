@@ -4,8 +4,8 @@ import { API_Base } from "../config";
 import { getPokemonId, BuildPokemon, type Tdata } from "../data/pokemonData";
 import RandomPokemonBalls from "./Randompokemon";
 
-//ใช้ตอน Search
-const filterByKeyword = (list: Tdata[], keyword: string) => {
+//Search
+const filterInput = (list: Tdata[], keyword: string) => {
   const key = keyword.toLowerCase().trim(); // คำค้นหาแบบตัดช่องว่างและปรับเป็นพิมพ์เล็กแล้ว
   if (!key) return list;
   return list.filter(
@@ -47,8 +47,7 @@ const fetchBatch = async (offset: number) => {
     species.varieties
       .filter(
         (varieties: { pokemon: { name: string }; is_default: boolean }) =>
-          BuildPokemon(varieties.pokemon.name, varieties.is_default) &&
-          !varieties.pokemon.name.includes("raichu-mega"),
+          BuildPokemon(varieties.pokemon.name, varieties.is_default)
       )
       .map((varieties: { pokemon: { name: string; url: string } }) => ({
         name: varieties.pokemon.name,
@@ -93,7 +92,7 @@ function PokemonList() {
 
   // กรองข้อมูลตามคำค้นหาปัจจุบัน
   const filteredData = useMemo(
-    () => filterByKeyword(data, searchKeyword),
+    () => filterInput(data, searchKeyword),
     [data, searchKeyword],
   );
   // ตัดมาแสดงเฉพาะเท่าที่ visibleCount กำหนด (infinite scroll แบบกดปุ่ม)
@@ -138,7 +137,7 @@ function PokemonList() {
   const fetchUntilEnough = (keyword: string, needed: number) =>
     withFetch(async () => {
       let cur = [...dataRef.current];
-      while (filterByKeyword(cur, keyword).length < needed) {
+      while (filterInput(cur, keyword).length < needed) {
         const next = offsetRef.current + 20;
         const { newData, hasNext } = await fetchBatch(next);
         offsetRef.current = next;
@@ -154,7 +153,7 @@ function PokemonList() {
     if (keyword === searchKeyword) return;
     setSearchKeyword(keyword);
     setVisibleCount(16);
-    if (keyword && filterByKeyword(dataRef.current, keyword).length < 16)
+    if (keyword && filterInput(dataRef.current, keyword).length < 16)
       fetchUntilEnough(keyword, 16);
   };
 
@@ -180,7 +179,7 @@ function PokemonList() {
     fetchSpecies(0).then(() => {
       if (
         initialType &&
-        filterByKeyword(dataRef.current, initialType).length < 16
+        filterInput(dataRef.current, initialType).length < 16
       ) {
         fetchUntilEnough(initialType, 16);
       }
