@@ -161,6 +161,17 @@ function PokemonDetail() {
           (v) => v.pokemon.name === json.name,
         ); // ตำแหน่งของร่างปัจจุบันในลิสต์ ถ้าหาไม่เจอจะเป็น -1
 
+        // id ที่เข้ามาทาง url อาจเป็นชื่อ (เช่น "venusaur-mega") หรือเลขที่ยังไม่เติม 0 นำหน้า (เช่น "3")
+        // ให้เปลี่ยน url เป็นรูปแบบมาตรฐาน (เช่น "0003_1") ก่อน แล้ว effect จะทำงานใหม่ด้วย id ที่ถูกต้อง
+        // ใช้ replace เพื่อไม่ให้ url แบบเดิมค้างอยู่ใน history (กดย้อนกลับแล้วจะไม่วนกลับมาที่นี่)
+        if (currentIndex !== -1) {
+          const canonicalId = buildRouteId(sId, currentIndex); // id รูปแบบมาตรฐานของร่างที่กำลังดูอยู่
+          if (canonicalId !== id) {
+            nav(`/PokeDex/${canonicalId}`, { replace: true });
+            return;
+          }
+        }
+
         // หาโปเกมอนตัวก่อนหน้า/ถัดไปสำหรับปุ่มเลื่อน
         // ลำดับความสำคัญ: ร่างถัดไปของ species เดียวกันก่อน ถ้าไม่มีแล้วค่อยข้าม species ไป (ตัวแรก/ตัวสุดท้ายของ species นั้น)
         const resolveNeighbor = async (

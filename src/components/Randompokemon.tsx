@@ -17,7 +17,7 @@ const pickUniqueIds = (n: number): number[] => {
 };
 
 // ทุกกี่วินาทีให้สุ่มชุดโปเกมอนใหม่ 1 ครั้ง
-const RandomDelaySec = 20;
+const RandomDelaySec = 40;
 const RandomDelayMs = RandomDelaySec * 1000; // setInterval ต้องการหน่วยเป็นมิลลิวินาที เลยคูณ 1000
 
 // ต่อ url รูปจาก id โดยลองที่ต้นทางหลักก่อน ถ้าโหลดพลาดค่อยลองที่ CDN สำรอง (ดู handleSpriteError ด้านล่าง)
