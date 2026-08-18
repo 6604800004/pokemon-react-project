@@ -21,6 +21,12 @@ export const BuildPokemon = (name: string, isDefault: boolean) =>
     name.includes("-gmax") ||
     name.includes("-alola"));
 
+// ดึง id ออกจาก url ของ PokeAPI โดยเอาส่วนสุดท้ายหลัง "/"
+export const getPokemonId = (url: string) => {
+    const parts = url.split('/').filter(Boolean);
+    return parts[parts.length - 1];
+}
+
 // โครงสร้าง types ของโปเกมอนตามที่ PokeAPI ส่งมา
 export type TypePokemon = {
     types: {
@@ -75,12 +81,6 @@ export type TypeDamageRelations = {
         no_damage_from: { name: string; url: string }[];
     };
 };
-
-// ดึง id ออกจาก url ของ PokeAPI โดยเอาส่วนสุดท้ายหลัง "/"
-export const getPokemonId = (url: string) => {
-    const parts = url.split('/').filter(Boolean);
-    return parts[parts.length - 1];
-}
 
 // ร่าง/ฟอร์มของโปเกมอนตัวหนึ่ง (จาก species.varieties)
 export type Variety = {

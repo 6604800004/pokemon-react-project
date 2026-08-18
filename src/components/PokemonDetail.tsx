@@ -538,7 +538,7 @@ function PokemonDetail() {
           ) : (
             <>
               {/* ส่วนสูง */}
-              <div className="absolute top-[17%] right-[5%] w-[21%] pointer-events-auto">
+              <div className="absolute top-[17%] right-[7%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">ส่วนสูง</p>
                 <p className="text-[19px] text-[#ffffff]">
                   {(data.height / 10).toFixed(1)} m
@@ -546,7 +546,7 @@ function PokemonDetail() {
               </div>
 
               {/* ชนิด */}
-              <div className="absolute top-[17%] right-[10%] w-[110px] flex flex-col pointer-events-auto">
+              <div className="absolute top-[17%] right-[10%] w-[140px] flex flex-col pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">ชนิด</p>
                 <p className="text-[19px] text-[#ffffff] leading-tight">
                   {genus}
@@ -554,15 +554,15 @@ function PokemonDetail() {
               </div>
 
               {/* น้ำหนัก */}
-              <div className="absolute top-[21%] right-[5%] w-[21%] pointer-events-auto">
+              <div className="absolute top-[21%] right-[7%] w-[21%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">น้ำหนัก</p>
                 <p className="text-[19px] text-[#ffffff]">
-                  {(data.height / 10).toFixed(1)} kg
+                  {(data.weight / 10).toFixed(1)} kg
                 </p>
               </div>
 
               {/* เพศ */}
-              <div className="absolute top-[21%] right-[5%] w-[13%] pointer-events-auto">
+              <div className="absolute top-[21%] right-[7%] w-[13%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">เพศ</p>
                 <div className="flex items-center gap-2 mt-1">
                   <img
@@ -580,7 +580,7 @@ function PokemonDetail() {
               </div>
 
               {/* คุณสมบัติพิเศษ */}
-              <div className="absolute top-[25%] right-[7%] w-[19%] pointer-events-auto">
+              <div className="absolute top-[25%] right-[9%] w-[19%] pointer-events-auto">
                 <p className="text-[19px] text-[#b3eafe]">คุณสมบัติพิเศษ</p>
                 <div className="flex flex-col gap-1 mt-1">
                   {data.abilities

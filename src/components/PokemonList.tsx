@@ -65,11 +65,11 @@ const fetchBatch = async (offset: number) => {
         .then((res) => res.json()) // แปลง response เป็น json เพื่อให้ได้ข้อมูลโปเกมอนแบบเต็ม
         .then((data) => ({ //แปลงข้อมูลโปเกมอนแบบเต็มเป็น object ของโปเกมอนที่มี name, url, id, types, และ sprite โดยใช้ getPokemonId() เพื่อดึง id ของโปเกมอนจาก speciesUrl และ map() เพื่อดึง types ของโปเกมอนจาก data.types
           name: e.name,
-          url: e.url,
+          url: e.url, // แสดงส่วน
           id: getPokemonId(e.speciesUrl),
           types: data.types.map((t: { type: { name: string } }) => t.type.name),
-          sprite: // ดึง sprite ของโปเกมอนจาก data.sprites.other["official-artwork"].front_default ถ้าไม่มีให้ใช้ "" แทน
-            data.sprites?.other?.["official-artwork"]?.front_default ?? "",
+          sprite:
+            data.sprites?.other?.["official-artwork"]?.front_default ?? "", // แสดงรูปโปเกมอนจาก official-artwork ถ้าไม่มีให้ใช้ "" แทน
         })),
     ),
   );
@@ -106,8 +106,10 @@ function PokemonList() {
   
   // กรองว่ามีข้อมูลโปเกมอนที่ถูกกรองแล้วมากกว่า visibleCount หรือไม่ (เพื่อใช้ในการแสดงปุ่ม "ค้นหาเพิ่มเติม") โดยใช้ hasMoreCached เป็น boolean
   const hasMoreCached = visibleCount < filteredData.length; 
-  // โชว์ปุ่ม "ค้นหาเพิ่มเติม" ก็ต่อเมื่อไม่กำลังโหลดข้อมูล และมีข้อมูลโปเกมอนที่ถูกกรองแล้วมากกว่า visibleCount หรือยังมีข้อมูลโปเกมอนใน API เพิ่มอีก
-  const showLoadMore = !loading && (hasMoreCached || hasMore); 
+  // notFound คือกรณีที่ผู้ใช้ค้นหาแล้วไม่เจอโปเกมอนเลย (โหลดข้อมูลเสร็จแล้ว มีคำค้นหา แต่ filteredData ว่างเปล่า) เพื่อใช้แสดงข้อความแจ้งผู้ใช้
+  const notFound = !loading && !!searchKeyword && filteredData.length === 0;
+  // โชว์ปุ่ม "ค้นหาเพิ่มเติม" ก็ต่อเมื่อไม่กำลังโหลดข้อมูล ไม่ใช่กรณีหาไม่เจอ และมีข้อมูลโปเกมอนที่ถูกกรองแล้วมากกว่า visibleCount หรือยังมีข้อมูลโปเกมอนใน API เพิ่มอีก
+  const showLoadMore = !loading && !notFound && (hasMoreCached || hasMore);
 
   // ฟังก์ชัน withFetch() ใช้สำหรับห่อหุ้มการเรียก API เพื่อป้องกันการเรียกซ้อนกัน และจัดการ state loading ให้ถูกต้อง
   const withFetch = async (fn: () => Promise<void>) => { // fn คือฟังก์ชันที่ส่งเข้ามาเพื่อเรียก API promise<void> คือฟังก์ชันที่ return เป็น Promise ที่ไม่มีค่า return (void)
@@ -312,6 +314,18 @@ function PokemonList() {
               </div>
             ))}
           </div>
+
+          {/* ถ้าค้นหาแล้วไม่เจอโปเกมอนเลย (ไม่มีข้อมูลตรงกับคำค้นหา) ให้แสดงกล่องข้อความแจ้งผู้ใช้แทนรายการโปเกมอน */}
+          {notFound && (
+            <div className="max-w-[800px] mx-auto my-10 rounded-2xl border-2 border-[#466e9b] bg-[#0a141e] px-8 py-10 text-center">
+              <p className="text-white text-[22px] font-bold">
+                หาโปเกมอนไม่เจอเลย
+              </p>
+              <p className="text-white text-[16px] mt-3">
+                ลองค้นหาด้วยเงื่อนไขอื่นดูกันเถอะ
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-center w-full max-w-[600px] h-20 mx-auto my-5">
             {loading ? (
