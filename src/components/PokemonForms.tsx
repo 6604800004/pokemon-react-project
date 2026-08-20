@@ -2,25 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { CDN, API_Base } from "../config";
 
-// พื้นหลังการ์ดกรณีไม่มีร่างอื่น
-const FORM_BG_EMPTY = "/src/assets/img/style0_bg.png";
-// พื้นหลังการ์ดกรณีมีร่างอื่น
-const FORM_BG_CARD = "/src/assets/img/style1_bg.png";
-// พื้นหลังวงกลมหลังรูปโปเกมอนแต่ละร่าง
-const FORM_BG_POKEBALL = "/src/assets/img/style_pokemon_bg.png";
-// พื้นหลังวงกลมหลังรูปโปเกมอนในสายวิวัฒนาการ
-const FORM_BG_EVO = "/src/assets/img/evolutions_pokemon_bg.png";
+const FORM_BG_EMPTY = "/src/assets/img/style0_bg.png"; // การ์ดตอนไม่มีร่างอื่น
+const FORM_BG_CARD = "/src/assets/img/style1_bg.png"; // การ์ดตอนมีร่างอื่น
+const FORM_BG_POKEBALL = "/src/assets/img/style_pokemon_bg.png"; // วงกลมหลังรูปแต่ละร่าง
+const FORM_BG_EVO = "/src/assets/img/evolutions_pokemon_bg.png"; // วงกลมหลังรูปในสายวิวัฒนาการ
 
 // เปลี่ยน url รูปจาก raw github ไปใช้ CDN แทนเพื่อโหลดเร็วขึ้น
 const toJsdelivr = (url: string) => url.replace(API_Base, CDN);
 
-// ร่างของโปเกมอนตัวหนึ่งตามที่ species ส่งมา
 type SpeciesVariety = {
   is_default: boolean;
   pokemon: { name: string; url: string };
 };
 
-// ข้อมูลที่ใช้แสดงผลของแต่ละร่าง/วิวัฒนาการ
 type FormData = {
   id: number;
   name: string;
@@ -34,11 +28,11 @@ type PokemonFormsProps = {
   speciesId: number;
 };
 
-// แปลงข้อมูลดิบจาก PokeAPI (ที่มีฟิลด์เยอะมาก) ให้เหลือแค่ id, ชื่อ, รูป, type ที่การ์ดต้องใช้แสดงผล
+// ตัดข้อมูลดิบจาก PokeAPI ให้เหลือแค่ที่การ์ดต้องใช้
 const mapForm = (p: any): FormData => ({
   id: p.id,
   name: p.name,
-  // ใช้รูปวาดทางการก่อน ถ้าไม่มี (บางร่างไม่มีรูปนี้) ค่อย fallback เป็นรูป sprite ปกติ
+  // ใช้รูปวาดทางการก่อน บางร่างไม่มีรูปนี้ค่อย fallback เป็น sprite ปกติ
   sprite: toJsdelivr(
     p.sprites.other["official-artwork"].front_default ??
       p.sprites.front_default,
@@ -46,8 +40,8 @@ const mapForm = (p: any): FormData => ({
   types: p.types.map((t: { type: { name: string } }) => t.type.name),
 });
 
-// evolution chain ของ PokeAPI เป็นโครงสร้างต้นไม้ (ตัวหนึ่งวิวัฒนาการเป็นได้หลายตัว)
-// ฟังก์ชันนี้เดินไล่ทีละ node แล้วเก็บชื่อใส่ names เรียงตามลำดับ (ร่างแรก -> ร่างที่วิวัฒนาการมาจากมัน -> ...)
+// evolution chain เป็นโครงสร้างต้นไม้ (ตัวหนึ่งวิวัฒนาการเป็นได้หลายตัว)
+// เดินไล่ทีละ node แล้วเก็บชื่อเรียงตามลำดับ (ร่างแรก -> ร่างที่วิวัฒนาการต่อ -> ...)
 const flattenChain = (node: any, names: string[] = []): string[] => {
   names.push(node.species.name);
   node.evolves_to.forEach((child: any) => flattenChain(child, names));
@@ -59,28 +53,26 @@ function PokemonForms({
   evolutionChainUrl,
   speciesId,
 }: PokemonFormsProps) {
-  const nav = useNavigate(); // ใช้เปลี่ยนหน้าเมื่อกดการ์ดร่างหรือวิวัฒนาการ
-  const [forms, setForms] = useState<FormData[]>([]); // ร่างอื่น ๆ ของโปเกมอนตัวนี้ (เช่น mega, alola)
-  const [evolutions, setEvolutions] = useState<FormData[]>([]); // สายวิวัฒนาการของโปเกมอนตัวนี้
-  const [loading, setLoading] = useState(true); // กำลังโหลดข้อมูลร่างและวิวัฒนาการอยู่หรือไม่
+  const nav = useNavigate();
+  const [forms, setForms] = useState<FormData[]>([]); // ร่างอื่น ๆ เช่น mega, alola
+  const [evolutions, setEvolutions] = useState<FormData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false; // กันไม่ให้ setState หลัง component unmount หรือ props เปลี่ยนไปแล้ว
+    let cancelled = false; // กันไม่ให้ setState หลัง unmount หรือ props เปลี่ยนไปแล้ว
     setLoading(true);
 
-    // โหลดข้อมูลของทุกร่างใน varieties
     const fetchForms = async () => {
       try {
         const varietyResults = await Promise.all(
           varieties.map((v) => fetch(v.pokemon.url).then((res) => res.json())),
-        ); // ข้อมูลดิบของทุกร่าง (ยังไม่ผ่าน mapForm)
+        );
         if (!cancelled) setForms(varietyResults.map(mapForm));
       } catch {
         if (!cancelled) setForms([]);
       }
     };
 
-    // โหลดข้อมูลสายวิวัฒนาการทั้งหมดจาก evolutionChainUrl
     const fetchEvolutions = async () => {
       if (!evolutionChainUrl) {
         if (!cancelled) setEvolutions([]);
@@ -89,10 +81,10 @@ function PokemonForms({
       try {
         const chainJson = await fetch(evolutionChainUrl).then((res) =>
           res.json(),
-        ); // โครงสร้างต้นไม้ของสายวิวัฒนาการแบบเต็ม
-        const evoNames = flattenChain(chainJson.chain); // รายชื่อทุกตัวในสายวิวัฒนาการ เรียงตามลำดับ
+        );
+        const evoNames = flattenChain(chainJson.chain);
         // แทรก raichu-alola ต่อจาก raichu เพราะ evolution chain ของ PokeAPI ไม่มีร่างนี้ให้
-        const raichuIndex = evoNames.indexOf("raichu"); // ตำแหน่งของ raichu ในลิสต์ (-1 ถ้าไม่มี)
+        const raichuIndex = evoNames.indexOf("raichu");
         if (raichuIndex !== -1) {
           evoNames.splice(raichuIndex + 1, 0, "raichu-alola");
         }
@@ -100,7 +92,7 @@ function PokemonForms({
           evoNames.map((name) =>
             fetch(`${API_Base}/pokemon/${name}`).then((res) => res.json()),
           ),
-        ); // ข้อมูลดิบของทุกตัวในสายวิวัฒนาการ (ยังไม่ผ่าน mapForm)
+        );
         if (!cancelled) setEvolutions(evoResults.map(mapForm));
       } catch {
         if (!cancelled) setEvolutions([]);
@@ -118,7 +110,7 @@ function PokemonForms({
 
   if (loading) return null;
 
-  const hasOtherForms = forms.length > 1; // มีมากกว่า 1 ร่างถึงจะนับว่ามี "ร่างอื่น"
+  const hasOtherForms = forms.length > 1; // มีมากกว่า 1 ร่างถึงนับว่ามี "ร่างอื่น"
 
   return (
     <div className="w-full relative">

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { CDN, OFFICIAL_URL } from "../config";
 
-// รายชื่อ id โปเกมอนที่คัดไว้ล่วงหน้าให้มีโอกาสถูกสุ่มขึ้นมาแสดงหน้าแรก (ไม่ได้สุ่มจากทั้ง 1000 กว่าตัว)
+// คัด id ไว้ล่วงหน้า ไม่ได้สุ่มจากทั้ง 1000 กว่าตัว
 const RandomPokemonId = [
   1, 4, 6, 7, 9, 25, 37, 38, 39, 52, 54, 63, 74, 92, 94, 95, 113, 129, 130, 131,
   133, 143, 149, 150, 172, 175, 196, 200, 201, 202, 203, 204, 205, 206, 207,
@@ -10,26 +10,23 @@ const RandomPokemonId = [
   448, 658, 700, 778, 792, 812, 888,
 ];
 
-// สุ่ม id มา n ตัวแบบไม่ซ้ำกัน โดยสลับลำดับทั้งลิสต์ก่อน (shuffle) แล้วตัดมาเอาแค่ n ตัวแรก
-const pickUniqueIds = (n: number): number[] => {
-  const shuffled = [...RandomPokemonId].sort(() => Math.random() - 0.5); // สำเนาลิสต์ที่สลับลำดับแบบสุ่มแล้ว
-  return shuffled.slice(0, n);
-};
+// สุ่ม n ตัวแบบไม่ซ้ำกัน
+const pickUniqueIds = (n: number): number[] =>
+  [...RandomPokemonId].sort(() => Math.random() - 0.5).slice(0, n);
 
-// ทุกกี่วินาทีให้สุ่มชุดโปเกมอนใหม่ 1 ครั้ง
-const RandomDelaySec = 40;
-const RandomDelayMs = RandomDelaySec * 1000; // setInterval ต้องการหน่วยเป็นมิลลิวินาที เลยคูณ 1000
+const RandomDelaySec = 5;
+const RandomDelayMs = RandomDelaySec * 1000;
 
-// ต่อ url รูปจาก id โดยลองที่ต้นทางหลักก่อน ถ้าโหลดพลาดค่อยลองที่ CDN สำรอง (ดู handleSpriteError ด้านล่าง)
+// ลองต้นทางหลักก่อน ถ้าโหลดพลาดค่อยไป CDN สำรอง (ดู handleSpriteError)
 const pokemonSpriteUrl = (id: number) => `${OFFICIAL_URL}/${id}.png`;
 const pokemonSpriteFallbackUrl = (id: number) => `${CDN}/${id}.png`;
 
-// เรียกเมื่อรูป <img> โหลดไม่ขึ้น (เช่น ต้นทางล่ม): ลองเปลี่ยนไปใช้ url สำรองก่อน
-// ถ้าลองสำรองแล้วยังพังอีก (โหลดจาก fallback ไม่ได้) ก็ทำให้รูปโปร่งใสไปเลยแทนที่จะโชว์ไอคอนรูปหักๆ
+// รูปโหลดไม่ขึ้น -> สลับไป url สำรองก่อน
+// ถ้าสำรองยังพังอีก ทำให้โปร่งใสไปเลย ดีกว่าโชว์ไอคอนรูปหัก
 const handleSpriteError =
   (id: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget; // element <img> ที่โหลดรูปพลาด
-    const fallback = pokemonSpriteFallbackUrl(id); // url สำรองที่จะลองโหลดแทน
+    const img = e.currentTarget;
+    const fallback = pokemonSpriteFallbackUrl(id);
     if (img.src !== fallback) {
       img.src = fallback;
     } else {
@@ -38,20 +35,19 @@ const handleSpriteError =
   };
 
 function RandomPokemonBalls() {
-  const nav = useNavigate(); // ใช้เปลี่ยนหน้าไปหน้ารายละเอียดเมื่อกดตัวโปเกมอน
-  const [ids, setIds] = useState<number[]>(() => pickUniqueIds(13)); // สุ่ม 13 ตัวไว้ตั้งแต่แรก
-  const centerId = ids[12]; // ตัวที่ 13 (index สุดท้าย) ใช้แสดงตรงกลาง ที่เหลือ 12 ตัวกระจายรอบ ๆ
+  const nav = useNavigate();
+  const [ids, setIds] = useState<number[]>(() => pickUniqueIds(13));
+  const centerId = ids[12]; // ตัวสุดท้ายใช้แสดงตรงกลาง อีก 12 ตัวกระจายรอบ ๆ
 
-  // ไปหน้ารายละเอียดของโปเกมอนที่กด
   const goToDetail = (id: number) => {
     nav(`/PokeDex/${id}`);
   };
 
-  // สุ่มชุดโปเกมอนใหม่ทุก ๆ RandomDelayMs
+  // สุ่มชุดใหม่ทุก ๆ RandomDelayMs
   useEffect(() => {
     const timer = setInterval(() => {
       setIds(pickUniqueIds(13));
-    }, RandomDelayMs); // ตัวจับเวลาไว้เคลียร์ตอน unmount กันเรียก setState ซ้ำโดยไม่มีใครใช้
+    }, RandomDelayMs);
     return () => clearInterval(timer);
   }, []);
 
